@@ -35,7 +35,7 @@ trace_defs={}
 # Bytes written on stack:
 #trace_defs['stack_w'] =['stack_bytes_w', '<B', '<B', [8]]
 # Same, exploded in individual bits:
-#trace_defs['stack8_w']=['stack_bytes_w', '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
+trace_defs['stack8_w']=['stack_bytes_w', '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
 # Low byte address of data read from data segment:
 #trace_defs['addr1_r'] =['mem_addr1_r',   '<B', '<B', [8]]
 # Same, exploded in individual bits:

@@ -28,7 +28,7 @@ import random
 import subprocess
 
 # Number of traces to collect
-TRACES=50
+TRACES=100
 
 TOOL='PIN32'
 #TOOL='PIN64'
@@ -73,7 +73,7 @@ if TOOL=='VALGRIND64':
 # trace_defs['keyword']=[list of 'R'/'W', condition(addr, size, data), extract(addr, size, data)]
 trace_defs={}
 # Bytes written on stack:
-#trace_defs['stack_bytes_w']=[['W'], lambda addr, size, data: addr > STACK and size == 1, lambda addr, size, data: data]
+trace_defs['stack_bytes_w']=[['W'], lambda addr, size, data: addr > STACK and size == 1, lambda addr, size, data: data]
 # Low byte address of data read from data segment:
 trace_defs['mem_addr1_r']  =[['R'], lambda addr, size, data: addr < STACK and size == 1, lambda addr, size, data: addr & 0xFF]
 # Bytes read from data segment:
