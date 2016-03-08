@@ -30,13 +30,13 @@ Converting traces for Daredevil:
 Executing the differential analysis on the converted traces:
 
 ```bash
-daredevil -c addr8_r_50_72072.config
+daredevil -c addr8_r_100_72072.config
 ```
 
 Here we already provided the correct DES key in the configuration and the tool returns the rank of the correct 6-bit round key segments amongst all the key candidates.
-Typically 50 traces are enough to rank the correct ones in first position.
+Typically 20 traces are enough to rank the correct ones in first position.
 
-To demonstrate an attack without knowing the key, edit addr8_r_50_72072.config:
+To demonstrate an attack without knowing the key, edit addr8_r_100_72072.config:
 
 * Comment out the correct_key
 * Choose which key segment to break, e.g.: bytenum=0
@@ -45,14 +45,16 @@ At this moment Daredevil doesn't attack yet all key bytes at once automatically 
 Run the  attack:
 
 ```bash
-daredevil -c addr8_r_50_72072.config
+daredevil -c addr8_r_100_72072.config
 ```
 
 Best key candidate should be 0x14 which is the first 6-bit key segment from the first round key.  
-Indeed, as for a DES key 3032343234363236, the first round key is:
+Indeed, as for a DES key `3032343234363236`, the first round key is:
 
 ```
 0 1 0 1 0 0 0 0 0 0 1 0 1 1 0 0 1 0 1 0 1 1 0 0 1 1 0 0 0 1 1 0 0 0 0 0 0 0 1 1 1 1 0 0 0 1 1 1
 .........14 .........02 .........32 .........2C .........31 .........20 .........0F .........07
 .............50 .............2C .............AC .............C6 .............03 .............C7
 ```
+
+One can find more details on the project wiki at https://github.com/SideChannelMarvels/Deadpool/wiki/Tutorial-%231:-DCA-against-Wyseur-2007-challenge
