@@ -102,7 +102,7 @@ def tracerpin2bin(tracefile, n, plaintext, ciphertext):
             trace.write(''.join([chr(x) for x in trace_data[k]]))
 
 def tracergrind(tmpfile, i, addr_range, image, plaintext):
-    output=subprocess.check_output(['/usr/local/bin/valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tmpfile+'.grind', image] + prepareinput(plaintext))
+    output=subprocess.check_output(['valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tmpfile+'.grind', image] + prepareinput(plaintext))
     cipher=getcipher(output)
     output=subprocess.check_output(['texttrace', tmpfile+'.grind', tmpfile])
     os.remove(tmpfile+'.grind')
