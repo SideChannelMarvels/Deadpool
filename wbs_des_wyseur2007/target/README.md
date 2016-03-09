@@ -20,3 +20,8 @@ Solution
 echo 11 22 33 44 55 66 77 88|xxd -r -p|openssl enc -e -des-ecb -nopad -K 3032343234363236|xxd -p
 c403d32e2bc6cfee
 ```
+
+Write-ups
+---------
+
+* http://www.phrack.org/issues/68/8.html
