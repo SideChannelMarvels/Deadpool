@@ -1,8 +1,3 @@
-# Hack.lu 2009 crackme
-
-This challenge was made by Jean-Baptiste Bédrune for Hack.lu 2009.  
-Ref: http://2009.hack.lu/index.php/ReverseChallenge
-
 Usage
 -----
 
@@ -31,9 +26,3 @@ Solution
 echo 192EF9E61164BD289F773E6C9101B89C|xxd -r -p|openssl enc -e -aes-128-ecb -nopad -K 142bbe0e2d22e48097497d5fac5b5926
 hack.lu-2009-ctf
 ```
-
-Write-ups
----------
-
-* http://baboon.rce.free.fr/index.php?post/2009/11/20/HackLu-Reverse-Challenge
-* http://www.phrack.org/issues/68/8.html
