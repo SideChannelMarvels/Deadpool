@@ -4,7 +4,7 @@
 
 
 ```bash
-Tracer -t sqlite -- ./wbDES 11 22 33 44 55 66 77 88
+Tracer -t sqlite -- ../target/wbDES 11 22 33 44 55 66 77 88
 ```
 
 ## Acquiring one trace with TracerGrind
