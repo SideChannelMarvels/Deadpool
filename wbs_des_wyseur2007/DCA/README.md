@@ -14,12 +14,7 @@ Using Tracer to acquire execution traces, here recording the lowest byte of each
 00006 04305FFFA97E76FF -> E4CFAD2453A2B74E
 ```
 
-By default the script is using TracerPIN but if you want you can change it to use TracerGrind:
-
-```diff
--TOOL='PIN32'
-+TOOL='VALGRIND32'
-```
+By default the script is using TracerPIN but if you want you can change it to use TracerGrind, cf commented line
 
 Converting traces for Daredevil:
 
