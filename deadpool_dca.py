@@ -196,19 +196,18 @@ class TracerGrind(Tracer):
         else:
             output=subprocess.check_output(cmd_list)
         oblock=self.processoutput(output, self.blocksize)
-        output=subprocess.check_output(['texttrace', self.tmptracefile+'.grind', self.tmptracefile])
+        output=subprocess.check_output("texttrace %s >(grep '^.M' > %s)" % (self.tmptracefile+'.grind', self.tmptracefile), shell=True, executable='/bin/bash')
         os.remove(self.tmptracefile+'.grind')
         self._trace_init(n, iblock, oblock)
         with open(self.tmptracefile, 'r') as trace:
             for line in iter(trace.readline, ''):
-                if len(line) > 2 and (line[1]=='M'):
-                    mem_mode=line[line.index('MODE')+6]
-                    mem_addr=int(line[line.index('START_ADDRESS')+15:line.index('START_ADDRESS')+31], 16)
-                    mem_size=int(line[line.index('LENGTH')+7:line.index('LENGTH')+9])
-                    mem_data=int(line[line.index('DATA')+6:].replace(" ",""), 16)
-                    for (k, tags, condition, extract) in self.filters:
-                        if mem_mode in tags and condition(self.stack_range, mem_addr, mem_size, mem_data):
-                            self._trace_data[k].append(extract(mem_addr, mem_size, mem_data))
+                mem_mode=line[line.index('MODE')+6]
+                mem_addr=int(line[line.index('START_ADDRESS')+15:line.index('START_ADDRESS')+31], 16)
+                mem_size=int(line[line.index('LENGTH')+7:line.index('LENGTH')+9])
+                mem_data=int(line[line.index('DATA')+6:].replace(" ",""), 16)
+                for (k, tags, condition, extract, pack_fmt) in self.filters:
+                    if mem_mode in tags and condition(self.stack_range, mem_addr, mem_size, mem_data):
+                        self._trace_data[k].append(extract(mem_addr, mem_size, mem_data))
         self._trace_dump()
         os.remove(self.tmptracefile)
         return oblock
