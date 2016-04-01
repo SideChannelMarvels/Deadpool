@@ -86,7 +86,7 @@ class Tracer(object):
                    filters,
                    tolerate_error,
                    debug):
-        self.target=target
+        self.target=target.split()
         self.processinput=processinput
         self.processoutput=processoutput
         self.arch=arch
@@ -126,7 +126,7 @@ class Tracer(object):
                         mem_mode, item, ins_addr, mem_addr, mem_size, mem_data = line.split()
                         item, ins_addr, mem_addr, mem_size, mem_data=int(item), int(ins_addr, 16), int(mem_addr, 16), int(mem_size), int(mem_data, 16)
                         try:
-                            output=subprocess.check_output(['addr2line', '-e', self.target, '0x%X'%ins_addr])
+                            output=subprocess.check_output(['addr2line', '-e', self.target[-1], '0x%X'%ins_addr])
                             output=output.split('/')[-1].strip()
                         except:
                             output=''
@@ -326,7 +326,7 @@ class TracerPIN(Tracer):
             for f in self.filters:
                 f.record_info=True
     def get_trace(self, n, iblock):
-        cmd_list=['Tracer', '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--', self.target] + self.processinput(iblock, self.blocksize)
+        cmd_list=['Tracer', '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--'] + self.target + self.processinput(iblock, self.blocksize)
         output=self._exec(cmd_list)
         oblock=self.processoutput(output, self.blocksize)
         self._trace_init(n, iblock, oblock)
@@ -354,7 +354,7 @@ class TracerPIN(Tracer):
             iblock=random.randint(0, (1<<(8*self.blocksize))-1)
         if tracefile is None:
             tracefile = self.tmptracefile
-        cmd_list=['Tracer', '-f', str(self.addr_range), '-o', tracefile, '--', self.target] + self.processinput(iblock, self.blocksize)
+        cmd_list=['Tracer', '-f', str(self.addr_range), '-o', tracefile, '--'] + self.target + self.processinput(iblock, self.blocksize)
         output=self._exec(cmd_list, debug=True)
 
 class TracerGrind(Tracer):
@@ -384,7 +384,7 @@ class TracerGrind(Tracer):
             raise ValueError("Sorry, option not yet supported!")
 
     def get_trace(self, n, iblock):
-        cmd_list=['valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind', self.target] + self.processinput(iblock, self.blocksize)
+        cmd_list=['valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind'] + self.target + self.processinput(iblock, self.blocksize)
         output=self._exec(cmd_list)
         oblock=self.processoutput(output, self.blocksize)
         output=subprocess.check_output("texttrace %s >(grep '^.M' > %s)" % (self.tmptracefile+'.grind', self.tmptracefile), shell=True, executable='/bin/bash')
@@ -410,7 +410,7 @@ class TracerGrind(Tracer):
             iblock=random.randint(0, (1<<(8*self.blocksize))-1)
         if tracefile is None:
             tracefile = self.tmptracefile
-        cmd_list=['valgrind', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind', self.target] + self.processinput(iblock, self.blocksize)
+        cmd_list=['valgrind', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind'] + self.target + self.processinput(iblock, self.blocksize)
         output=self._exec(cmd_list, debug=True)
         output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind',tracefile))
         os.remove(tracefile+'.grind')
