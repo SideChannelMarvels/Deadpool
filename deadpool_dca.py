@@ -38,6 +38,7 @@ def processinput(iblock, blocksize):
    returns a list of strings to be used as args for the target
    default processinput(): returns one string containing the block in hex
 """
+    # return None if input can't be injected
     return ['%0*x' % (2*blocksize, iblock)]
 
 def processoutput(output, blocksize):
@@ -47,6 +48,7 @@ def processoutput(output, blocksize):
    returns a int, supposed to be the data block outputted by the target
    default processouput(): expects the output to be directly the block in hex
 """
+    # return None if there is no output available
     return int(output, 16)
 
 class ARCH:
@@ -107,11 +109,10 @@ class Tracer(object):
         self.debug=debug
 
     def run(self, n, verbose=True):
+        self.verbose=verbose
         for i in range(n):
             iblock=random.randint(0, (1<<(8*self.blocksize))-1)
             oblock=self.get_trace(i, iblock)
-            if verbose:
-                print '%05i %0*X -> %0*X' % (i, 2*self.blocksize, iblock, 2*self.blocksize, oblock)
 
     def sample2event(self, sample, filtr):
         # returns (event number, optional list of details (mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, src_line_info))
@@ -158,18 +159,28 @@ class Tracer(object):
 
     def _trace_dump(self):
         n, iblock, oblock = self._trace_meta
+        if iblock is not None:
+            iblockstr='%0*X' % (2*self.blocksize, iblock)
+        else:
+            iblockstr='na'
+        if oblock is not None:
+            oblockstr='%0*X' % (2*self.blocksize, oblock)
+        else:
+            oblockstr='na'
         for f in self.filters:
-            with open('trace_%s_%04i_%0*X_%0*X.bin'
-                  % (f.keyword, n, 2*self.blocksize, iblock, 2*self.blocksize, oblock), 'wb') as trace:
+            with open('trace_%s_%04i_%s_%s.bin'
+                  % (f.keyword, n, iblockstr, oblockstr), 'wb') as trace:
                 trace.write(''.join([struct.pack(f.extract_fmt, x) for x in self._trace_data[f.keyword]]))
             if f.record_info:
-                with open('trace_%s_%0*X_%0*X.info'
-                      % (f.keyword, 2*self.blocksize, iblock, 2*self.blocksize, oblock), 'wb') as trace:
+                with open('trace_%s_%s_%s.info'
+                      % (f.keyword, iblockstr, oblockstr), 'wb') as trace:
                     for mem_mode, item, ins_addr, mem_addr, mem_size, mem_data in self._trace_info[f.keyword]:
                         trace.write("[%s] %7i %16X %16X %2i %0*X\n" % (mem_mode, item, ins_addr, mem_addr, mem_size, 2*mem_size, mem_data))
                 f.record_info=False
         del(self._trace_data)
         del(self._trace_info)
+        if self.verbose:
+            print '%05i %s -> %s' % (n, iblockstr, oblockstr)
 
     def _bin2meta(self, f):
         # There is purposely no internal link with run() data, everything is read again from files
@@ -178,17 +189,27 @@ class Tracer(object):
         assert n > 0
         traces_meta={}
         min_size=None
+        iblock_available=True
+        oblock_available=True
         for filename in glob.glob('trace_%s_*.bin' % f.keyword):
             i,iblock,oblock=filename[len('trace_%s_' % f.keyword):-len('.bin')].split('_')
-            assert self.blocksize==len(iblock)/2
-            assert self.blocksize==len(oblock)/2
+            if iblock!='na':
+                assert self.blocksize==len(iblock)/2
+                assert iblock_available==True
+            else:
+                iblock_available=False
+            if oblock!='na':
+                assert self.blocksize==len(oblock)/2
+                assert oblock_available==True
+            else:
+                oblock_available=False
             filesize = os.path.getsize(filename)
             if not min_size or min_size > filesize:
                 min_size = filesize
-            traces_meta[filename] = [int(iblock, 16), int(oblock, 16)]
+            traces_meta[filename] = [iblock, oblock]
         ntraces = len(traces_meta)
         nsamples = min_size*8
-        return (ntraces, nsamples, min_size, traces_meta)
+        return (ntraces, nsamples, min_size, traces_meta, iblock_available, oblock_available)
 
     def bin2daredevil(self, delete_bin=True, config=None, configs=None):
         assert config is None or configs is None
@@ -197,13 +218,15 @@ class Tracer(object):
         if configs is None:
             configs={'':{}}
         for f in self.filters:
-            ntraces, nsamples, min_size, traces_meta = self._bin2meta(f)
+            ntraces, nsamples, min_size, traces_meta, iblock_available, oblock_available = self._bin2meta(f)
             with open('%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), 'wb') as filetrace,\
                  open('%s_%i_%i.input' % (f.keyword, ntraces, nsamples), 'wb') as fileinput,\
                  open('%s_%i_%i.output' % (f.keyword, ntraces, nsamples), 'wb') as fileoutput:
                 for filename, (iblock, oblock) in traces_meta.iteritems():
-                    fileinput.write(('%0*X' % (2*self.blocksize, iblock)).decode('hex'))
-                    fileoutput.write(('%0*X' % (2*self.blocksize, oblock)).decode('hex'))
+                    if iblock_available:
+                        fileinput.write(iblock.decode('hex'))
+                    if oblock_available:
+                        fileoutput.write(oblock.decode('hex'))
                     with open(filename, 'rb') as trace:
                         filetrace.write(serializechars(trace.read(min_size)))
                     if delete_bin:
@@ -276,7 +299,7 @@ top=%s
 
     def bin2trs(self, delete_bin=True):
         for f in self.filters:
-            ntraces, nsamples, min_size, traces_meta = self._bin2meta(f)
+            ntraces, nsamples, min_size, traces_meta, iblock_available, oblock_available = self._bin2meta(f)
             with open('%s_%i_%i.trs' % (f.keyword, ntraces, nsamples), 'wb') as trs:
                 trs.write('\x41\x04' + struct.pack('<I', ntraces))
                 trs.write('\x42\x04' + struct.pack('<I', nsamples))
@@ -286,11 +309,14 @@ top=%s
                 #   bit 4-1: sample length in bytes (1,2,4)
                 trs.write('\x43\x01' + chr(struct.calcsize('<B')))
                 # Length of crypto data
-                trs.write('\x44\x02' + struct.pack('<H', self.blocksize+self.blocksize))
+                trs.write('\x44\x02' + struct.pack('<H', self.blocksize*iblock_available+self.blocksize*oblock_available))
                 # End of header
                 trs.write('\x5F\x00')
                 for filename, (iblock, oblock) in traces_meta.iteritems():
-                    trs.write(('%0*X%0*X' % (2*self.blocksize, iblock, 2*self.blocksize, oblock)).decode('hex'))
+                    if iblock_available:
+                        trs.write(('%0*X' % (2*self.blocksize, iblock)).decode('hex'))
+                    if oblock_available:
+                        trs.write(('%0*X' % (2*self.blocksize, oblock)).decode('hex'))
                     with open(filename, 'rb') as trace:
                         trs.write(serializechars(trace.read(min_size)))
                     if delete_bin:
@@ -326,7 +352,11 @@ class TracerPIN(Tracer):
             for f in self.filters:
                 f.record_info=True
     def get_trace(self, n, iblock):
-        cmd_list=['Tracer', '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--'] + self.target + self.processinput(iblock, self.blocksize)
+        processed_input=self.processinput(iblock, self.blocksize)
+        if not processed_input:
+            processed_input=[]
+            iblock=None
+        cmd_list=['Tracer', '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--'] + self.target + processed_input
         output=self._exec(cmd_list)
         oblock=self.processoutput(output, self.blocksize)
         self._trace_init(n, iblock, oblock)
@@ -354,7 +384,11 @@ class TracerPIN(Tracer):
             iblock=random.randint(0, (1<<(8*self.blocksize))-1)
         if tracefile is None:
             tracefile = self.tmptracefile
-        cmd_list=['Tracer', '-f', str(self.addr_range), '-o', tracefile, '--'] + self.target + self.processinput(iblock, self.blocksize)
+        processed_input=self.processinput(iblock, self.blocksize)
+        if not processed_input:
+            processed_input=[]
+            iblock=None
+        cmd_list=['Tracer', '-f', str(self.addr_range), '-o', tracefile, '--'] + self.target + processed_input
         output=self._exec(cmd_list, debug=True)
 
 class TracerGrind(Tracer):
@@ -384,7 +418,11 @@ class TracerGrind(Tracer):
             raise ValueError("Sorry, option not yet supported!")
 
     def get_trace(self, n, iblock):
-        cmd_list=['valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind'] + self.target + self.processinput(iblock, self.blocksize)
+        processed_input=self.processinput(iblock, self.blocksize)
+        if not processed_input:
+            processed_input=[]
+            iblock=None
+        cmd_list=['valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind'] + self.target + processed_input
         output=self._exec(cmd_list)
         oblock=self.processoutput(output, self.blocksize)
         output=subprocess.check_output("texttrace %s >(grep '^.M' > %s)" % (self.tmptracefile+'.grind', self.tmptracefile), shell=True, executable='/bin/bash')
@@ -410,7 +448,11 @@ class TracerGrind(Tracer):
             iblock=random.randint(0, (1<<(8*self.blocksize))-1)
         if tracefile is None:
             tracefile = self.tmptracefile
-        cmd_list=['valgrind', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind'] + self.target + self.processinput(iblock, self.blocksize)
+        processed_input=self.processinput(iblock, self.blocksize)
+        if not processed_input:
+            processed_input=[]
+            iblock=None
+        cmd_list=['valgrind', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind'] + self.target + processed_input
         output=self._exec(cmd_list, debug=True)
         output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind',tracefile))
         os.remove(tracefile+'.grind')
