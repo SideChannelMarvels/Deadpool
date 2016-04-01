@@ -60,6 +60,7 @@ class FILTER:
         self.condition=condition
         self.extract=extract
         self.extract_fmt=extract_fmt
+        self.record_info=False
 
 class DEFAULT_FILTERS:
     # Bytes written on stack:
@@ -113,8 +114,26 @@ class Tracer(object):
                 print '%05i %0*X -> %0*X' % (i, 2*self.blocksize, iblock, 2*self.blocksize, oblock)
 
     def sample2event(self, sample, filtr):
+        # returns (event number, optional list of details (mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, src_line_info))
         # assuming serialized samples
-        return int(math.ceil(float(sample)/struct.calcsize(filtr[4])/8))
+        ievent=int(math.ceil(float(sample)/struct.calcsize(filtr.extract_fmt)/8))
+        # Let's see if we've more info...
+        eventlist=[]
+        for filename in glob.glob('trace_%s_*.info' % filtr.keyword):
+            with open(filename) as info:
+                for i, line in enumerate(info):
+                    if i+1 == ievent:
+                        mem_mode, item, ins_addr, mem_addr, mem_size, mem_data = line.split()
+                        item, ins_addr, mem_addr, mem_size, mem_data=int(item), int(ins_addr, 16), int(mem_addr, 16), int(mem_size), int(mem_data, 16)
+                        try:
+                            output=subprocess.check_output(['addr2line', '-e', self.target, '0x%X'%ins_addr])
+                            output=output.split('/')[-1].strip()
+                        except:
+                            output=''
+                        eventlist.append((mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, output))
+                    elif i > ievent:
+                        break
+        return (ievent, eventlist)
 
     def _exec(self, cmd_list, debug=None):
         if debug is None:
@@ -132,16 +151,25 @@ class Tracer(object):
     def _trace_init(self, n, iblock, oblock):
         self._trace_meta=(n, iblock, oblock)
         self._trace_data={}
+        self._trace_info={}
         for f in self.filters:
             self._trace_data[f.keyword]=[]
+            self._trace_info[f.keyword]=[]
 
     def _trace_dump(self):
         n, iblock, oblock = self._trace_meta
         for f in self.filters:
             with open('trace_%s_%04i_%0*X_%0*X.bin'
-                      % (f.keyword, n, 2*self.blocksize, iblock, 2*self.blocksize, oblock), 'wb') as trace:
+                  % (f.keyword, n, 2*self.blocksize, iblock, 2*self.blocksize, oblock), 'wb') as trace:
                 trace.write(''.join([struct.pack(f.extract_fmt, x) for x in self._trace_data[f.keyword]]))
+            if f.record_info:
+                with open('trace_%s_%0*X_%0*X.info'
+                      % (f.keyword, 2*self.blocksize, iblock, 2*self.blocksize, oblock), 'wb') as trace:
+                    for mem_mode, item, ins_addr, mem_addr, mem_size, mem_data in self._trace_info[f.keyword]:
+                        trace.write("[%s] %7i %16X %16X %2i %0*X\n" % (mem_mode, item, ins_addr, mem_addr, mem_size, 2*mem_size, mem_data))
+                f.record_info=False
         del(self._trace_data)
+        del(self._trace_info)
 
     def _bin2meta(self, f):
         # There is purposely no internal link with run() data, everything is read again from files
@@ -245,7 +273,8 @@ class TracerPIN(Tracer):
                    stack_range='default',
                    filters='default',
                    tolerate_error=False,
-                   debug=False):
+                   debug=False,
+                   record_info=True):
         super(TracerPIN, self).__init__(target, processinput, processoutput, arch, blocksize, tmptracefile, addr_range, stack_range, filters, tolerate_error, debug)
         # Execution address range
         # 0 = all
@@ -259,7 +288,9 @@ class TracerPIN(Tracer):
                 self.stack_range =(0xff000000, 0xffffffff)
             elif self.arch==ARCH.amd64:
                 self.stack_range =(0x7fff00000000, 0x7fffffffffff)
-
+        if record_info:
+            for f in self.filters:
+                f.record_info=True
     def get_trace(self, n, iblock):
         cmd_list=['Tracer', '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--', self.target] + self.processinput(iblock, self.blocksize)
         output=self._exec(cmd_list)
@@ -269,11 +300,15 @@ class TracerPIN(Tracer):
             for line in iter(trace.readline, ''):
                 if len(line) > 2 and (line[1]=='R' or line[1]=='W'):
                     mem_mode=line[1]
+                    item=int(line[4:13])
+                    ins_addr=int(line[14:29], 16)
                     mem_addr=int(line[85:99], 16)
                     mem_size=int(line[105:107])
                     mem_data=int(line[114:].replace(" ",""), 16)
                     for f in self.filters:
                         if mem_mode in f.modes and f.condition(self.stack_range, mem_addr, mem_size, mem_data):
+                            if f.record_info:
+                                self._trace_info[f.keyword].append((mem_mode, item, ins_addr, mem_addr, mem_size, mem_data))
                             self._trace_data[f.keyword].append(f.extract(mem_addr, mem_size, mem_data))
         self._trace_dump()
         if not self.debug:
@@ -299,7 +334,8 @@ class TracerGrind(Tracer):
                    stack_range='default',
                    filters='default',
                    tolerate_error=False,
-                   debug=False):
+                   debug=False,
+                   record_info=False):
         super(TracerGrind, self).__init__(target, processinput, processoutput, arch, blocksize, tmptracefile, addr_range, stack_range, filters, tolerate_error, debug)
         # Execution address range
         # Valgrind: reduce at least to 0x400000-0x3ffffff to avoid self-tracing
@@ -310,6 +346,8 @@ class TracerGrind(Tracer):
                 self.stack_range =(0xf0000000, 0xffffffff)
             if self.arch==ARCH.amd64:
                 self.stack_range =(0xff0000000, 0xfffffffff)
+        if record_info:
+            raise ValueError("Sorry, option not yet supported!")
 
     def get_trace(self, n, iblock):
         cmd_list=['valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind', self.target] + self.processinput(iblock, self.blocksize)
