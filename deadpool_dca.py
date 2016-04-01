@@ -174,7 +174,6 @@ class Tracer(object):
     def _bin2meta(self, f):
         # There is purposely no internal link with run() data, everything is read again from files
         # because it may have been obtained from several instances running in parallel
-        bytes_per_iblock_sample = struct.calcsize(f.extract_fmt)
         n=len(glob.glob('trace_%s_*.bin' % f.keyword))
         assert n > 0
         traces_meta={}
@@ -188,7 +187,7 @@ class Tracer(object):
                 min_size = filesize
             traces_meta[filename] = [int(iblock, 16), int(oblock, 16)]
         ntraces = len(traces_meta)
-        nsamples = min_size/bytes_per_iblock_sample*8
+        nsamples = min_size*8
         return (ntraces, nsamples, min_size, traces_meta)
 
     def bin2daredevil(self, delete_bin=True, config={}, configname=''):
