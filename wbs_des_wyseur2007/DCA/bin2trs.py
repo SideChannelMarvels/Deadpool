@@ -32,19 +32,17 @@ import struct
 # struct definitions are those of struct python module
 trace_defs={}
 # Bytes written on stack:
-#trace_defs['stack_w'] =['stack_bytes_w', '<B', '<B', [8]]
+#trace_defs['stack_w1'] =['stack_w1', '<B', '<B', [8]]
 # Same, exploded in individual bits:
-#trace_defs['stack8_w']=['stack_bytes_w', '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
+trace_defs['stack_w1s']=['stack_w1', '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
 # Low byte address of data read from data segment:
-#trace_defs['addr1_r'] =['mem_addr1_r',   '<B', '<B', [8]]
+#trace_defs['mem_addr1_rw1'] =['mem_addr1_rw1',   '<B', '<B', [8]]
 # Same, exploded in individual bits:
-trace_defs['addr8_r'] =['mem_addr1_r',   '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
-# Same, retaining only the lowest bit:
-#trace_defs['addrlsb_r'] =['mem_addr1_r',   '<B', '<B', [1]]
+trace_defs['mem_addr1s_rw1'] =['mem_addr1_rw1',   '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
 # Bytes read from data segment:
-#trace_defs['data1_r'] =['mem_data1_r',   '<B', '<B', [8]]
+#trace_defs['mem_data1_rw'] =['mem_data_rw1',   '<B', '<B', [8]]
 # Same, exploded in individual bits:
-#trace_defs['data8_r'] =['mem_data1_r',   '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
+trace_defs['mem_data1s_rw'] =['mem_data_rw1',   '<B', '<B', [1, 1, 1, 1, 1, 1, 1, 1]]
 
 for k,(tag, struct_input_sample, struct_output_sample, list_bits_per_output_sample) in trace_defs.iteritems():
     bytes_per_input_sample = struct.calcsize(struct_input_sample)

@@ -11,6 +11,6 @@ def processinput(iblock, blocksize):
 def processoutput(output, blocksize):
     return int(''.join([x for x in output.split('\n') if x.find('OUTPUT')==0][0][10:].split(' ')), 16)
 
-T=TracerPIN('../target/wbDES', processinput, processoutput, ARCH.i386, 8)
-#T=TracerGrind('../target/wbDES', processinput, processoutput, ARCH.i386, 8, addr_range='0x08000000-0x08100000')
+#T=TracerPIN('../target/wbDES', processinput, processoutput, ARCH.i386, 8)
+T=TracerGrind('../target/wbDES', processinput, processoutput, ARCH.i386, 8, addr_range='0x08000000-0x08100000')
 T.run(100)

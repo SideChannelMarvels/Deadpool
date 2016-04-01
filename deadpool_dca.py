@@ -29,6 +29,7 @@ import glob
 import struct
 import random
 import subprocess
+import math
 
 def processinput(iblock, blocksize):
     """processinput() helper function
@@ -53,17 +54,24 @@ class ARCH:
     amd64 = 1
 
 class FILTER:
-    #['keyword', list of 'R'/'W', condition((stacklow, stackhigh), addr, size, data), extract(addr, size, data), pack_fmt]
+    def __init__(self, keyword, modes, condition, extract, extract_fmt):
+        self.keyword=keyword
+        self.modes=modes
+        self.condition=condition
+        self.extract=extract
+        self.extract_fmt=extract_fmt
+
+class DEFAULT_FILTERS:
     # Bytes written on stack:
-    stack_w1 =['stack_w1', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 1, lambda addr, size, data: data, '<B']
-    stack_w4 =['stack_w4', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 4, lambda addr, size, data: data, '<I']
+    stack_w1      =FILTER('stack_w1', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 1, lambda addr, size, data: data, '<B')
+    stack_w4      =FILTER('stack_w4', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 4, lambda addr, size, data: data, '<I')
     # Low byte(s) address of data read from data segment:
-    mem_addr1_rw1   =['mem_addr1_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFF, '<B']
-    mem_addr1_rw4   =['mem_addr1_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: addr & 0xFF, '<B']
-    mem_addr2_rw1   =['mem_addr2_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFFFF, '<H']
+    mem_addr1_rw1 =FILTER('mem_addr1_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFF, '<B')
+    mem_addr1_rw4 =FILTER('mem_addr1_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: addr & 0xFF, '<B')
+    mem_addr2_rw1 =FILTER('mem_addr2_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFFFF, '<H')
     # Bytes read from data segment:
-    mem_data_rw1   =['mem_data_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: data, '<B']
-    mem_data_rw4   =['mem_data_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: data, '<I']
+    mem_data_rw1  =FILTER('mem_data_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: data, '<B')
+    mem_data_rw4  =FILTER('mem_data_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: data, '<I')
 
 class Tracer(object):
     def __init__(self, target,
@@ -91,7 +99,7 @@ class Tracer(object):
         if self.stack_range != 'default':
             self.stack_range=(int(stack_range[:stack_range.index('-')], 16), int(stack_range[stack_range.index('-')+1:], 16))
         if filters == 'default':
-            self.filters=[FILTER.stack_w1, FILTER.mem_addr1_rw1, FILTER.mem_data_rw1]
+            self.filters=[DEFAULT_FILTERS.stack_w1, DEFAULT_FILTERS.mem_addr1_rw1, DEFAULT_FILTERS.mem_data_rw1]
         else:
             self.filters=filters
         self.tolerate_error=tolerate_error
@@ -103,6 +111,10 @@ class Tracer(object):
             oblock=self.get_trace(i, iblock)
             if verbose:
                 print '%05i %0*X -> %0*X' % (i, 2*self.blocksize, iblock, 2*self.blocksize, oblock)
+
+    def sample2event(self, sample, filtr):
+        # assuming serialized samples
+        return int(math.ceil(float(sample)/struct.calcsize(filtr[4])/8))
 
     def _exec(self, cmd_list, debug=None):
         if debug is None:
@@ -121,14 +133,14 @@ class Tracer(object):
         self._trace_meta=(n, iblock, oblock)
         self._trace_data={}
         for f in self.filters:
-            self._trace_data[f[0]]=[]
+            self._trace_data[f.keyword]=[]
 
     def _trace_dump(self):
         n, iblock, oblock = self._trace_meta
-        for (k, tags, condition, extract, pack_fmt) in self.filters:
+        for f in self.filters:
             with open('trace_%s_%04i_%0*X_%0*X.bin'
-                      % (k, n, 2*self.blocksize, iblock, 2*self.blocksize, oblock), 'wb') as trace:
-                trace.write(''.join([struct.pack(pack_fmt, x) for x in self._trace_data[k]]))
+                      % (f.keyword, n, 2*self.blocksize, iblock, 2*self.blocksize, oblock), 'wb') as trace:
+                trace.write(''.join([struct.pack(f.extract_fmt, x) for x in self._trace_data[f.keyword]]))
         del(self._trace_data)
 
 class TracerPIN(Tracer):
@@ -169,9 +181,9 @@ class TracerPIN(Tracer):
                     mem_addr=int(line[85:99], 16)
                     mem_size=int(line[105:107])
                     mem_data=int(line[114:].replace(" ",""), 16)
-                    for (k, tags, condition, extract, pack_fmt) in self.filters:
-                        if mem_mode in tags and condition(self.stack_range, mem_addr, mem_size, mem_data):
-                            self._trace_data[k].append(extract(mem_addr, mem_size, mem_data))
+                    for f in self.filters:
+                        if mem_mode in f.modes and f.condition(self.stack_range, mem_addr, mem_size, mem_data):
+                            self._trace_data[f.keyword].append(f.extract(mem_addr, mem_size, mem_data))
         self._trace_dump()
         if not self.debug:
             os.remove(self.tmptracefile)
@@ -222,9 +234,9 @@ class TracerGrind(Tracer):
                 mem_addr=int(line[line.index('START_ADDRESS')+15:line.index('START_ADDRESS')+31], 16)
                 mem_size=int(line[line.index('LENGTH')+7:line.index('LENGTH')+9])
                 mem_data=int(line[line.index('DATA')+6:].replace(" ",""), 16)
-                for (k, tags, condition, extract, pack_fmt) in self.filters:
-                    if mem_mode in tags and condition(self.stack_range, mem_addr, mem_size, mem_data):
-                        self._trace_data[k].append(extract(mem_addr, mem_size, mem_data))
+                for f in self.filters:
+                    if mem_mode in f.modes and f.condition(self.stack_range, mem_addr, mem_size, mem_data):
+                        self._trace_data[f.keyword].append(f.extract(mem_addr, mem_size, mem_data))
         self._trace_dump()
         if not self.debug:
             os.remove(self.tmptracefile)
