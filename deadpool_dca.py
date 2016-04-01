@@ -175,11 +175,11 @@ class Tracer(object):
         # There is purposely no internal link with run() data, everything is read again from files
         # because it may have been obtained from several instances running in parallel
         bytes_per_iblock_sample = struct.calcsize(f.extract_fmt)
-        n=len(glob.glob('trace_%s_*' % f.keyword))
+        n=len(glob.glob('trace_%s_*.bin' % f.keyword))
         assert n > 0
         traces_meta={}
         min_size=None
-        for filename in glob.glob('trace_%s_*' % f.keyword):
+        for filename in glob.glob('trace_%s_*.bin' % f.keyword):
             i,iblock,oblock=filename[len('trace_%s_' % f.keyword):-len('.bin')].split('_')
             assert self.blocksize==len(iblock)/2
             assert self.blocksize==len(oblock)/2
