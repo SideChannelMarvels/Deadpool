@@ -4,7 +4,7 @@ Usage
 Using Tracer to acquire execution traces, here recording the lowest byte of each address from which data is being read:
 
 ```bash
-./Tracer2bin.py
+./trace_it.py
 00000 F9B247990D90C1F3 -> AE90B8FBD1FC36CD
 00001 0FD6AE2BD86D6178 -> EBA637804BB3417F
 00002 222C10E967C93DFB -> 3130E6D763CB113D
@@ -16,22 +16,16 @@ Using Tracer to acquire execution traces, here recording the lowest byte of each
 
 By default the script is using TracerPIN but if you want you can change it to use TracerGrind, cf commented line
 
-Converting traces for Daredevil:
-
-```bash
-./bin2daredevil.py
-```
-
 Executing the differential analysis on the converted traces:
 
 ```bash
-daredevil -c addr8_r_100_72072.config
+daredevil -c mem_addr1_rw1_100_72080.config
 ```
 
 Here we already provided the correct DES key in the configuration and the tool returns the rank of the correct 6-bit round key segments amongst all the key candidates.
 Typically 20 traces are enough to rank the correct ones in first position.
 
-To demonstrate an attack without knowing the key, edit addr8_r_100_72072.config:
+To demonstrate an attack without knowing the key, edit mem_addr1_rw1_100_72080.config:
 
 * Comment out the correct_key
 * Choose which key segment to break, e.g.: bytenum=0
@@ -40,7 +34,7 @@ At this moment Daredevil doesn't attack yet all key bytes at once automatically 
 Run the  attack:
 
 ```bash
-daredevil -c addr8_r_100_72072.config
+daredevil -c mem_addr1_rw1_100_72080.config
 ```
 
 Best key candidate should be 0x14 which is the first 6-bit key segment from the first round key.  
