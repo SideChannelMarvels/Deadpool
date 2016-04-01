@@ -143,6 +143,97 @@ class Tracer(object):
                 trace.write(''.join([struct.pack(f.extract_fmt, x) for x in self._trace_data[f.keyword]]))
         del(self._trace_data)
 
+    def _bin2meta(self, f):
+        # There is purposely no internal link with run() data, everything is read again from files
+        # because it may have been obtained from several instances running in parallel
+        bytes_per_iblock_sample = struct.calcsize(f.extract_fmt)
+        n=len(glob.glob('trace_%s_*' % f.keyword))
+        assert n > 0
+        traces_meta={}
+        min_size=None
+        for filename in glob.glob('trace_%s_*' % f.keyword):
+            i,iblock,oblock=filename[len('trace_%s_' % f.keyword):-len('.bin')].split('_')
+            assert self.blocksize==len(iblock)/2
+            assert self.blocksize==len(oblock)/2
+            filesize = os.path.getsize(filename)
+            if not min_size or min_size > filesize:
+                min_size = filesize
+            traces_meta[filename] = [int(iblock, 16), int(oblock, 16)]
+        ntraces = len(traces_meta)
+        nsamples = min_size/bytes_per_iblock_sample*8
+        return (ntraces, nsamples, min_size, traces_meta)
+
+    def bin2daredevil(self, delete_bin=True):
+        for f in self.filters:
+            ntraces, nsamples, min_size, traces_meta = self._bin2meta(f)
+            with open('%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), 'wb') as filetrace,\
+                 open('%s_%i_%i.input' % (f.keyword, ntraces, nsamples), 'wb') as fileinput,\
+                 open('%s_%i_%i.output' % (f.keyword, ntraces, nsamples), 'wb') as fileoutput:
+                for filename, (iblock, oblock) in traces_meta.iteritems():
+                    fileinput.write(('%0*X' % (2*self.blocksize, iblock)).decode('hex'))
+                    fileoutput.write(('%0*X' % (2*self.blocksize, oblock)).decode('hex'))
+                    with open(filename, 'rb') as trace:
+                        filetrace.write(serializechars(trace.read(min_size)))
+                    if delete_bin:
+                        os.remove(filename)
+            with open('%s_%i_%i.config' % (f.keyword, ntraces, nsamples), 'wb') as fileconfig:
+                config="""
+[Traces]
+files=1
+trace_type=i
+transpose=true
+index=0
+nsamples=%i
+trace=%s %i %i
+
+[Guesses]
+files=1
+guess_type=u
+transpose=true
+guess=%s %i %i
+#guess=%s %i %i
+
+[General]
+threads=8
+order=1
+return_type=double
+algorithm=DES
+position=LUT/DES_SBOX
+round=0
+bitnum=all
+bytenum=all
+correct_key=0x%s
+memory=4G
+top=20
+        """ % (nsamples, \
+               '%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), ntraces, nsamples, \
+               '%s_%i_%i.input' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
+               '%s_%i_%i.output' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
+               '30 32 34 32 34 36 32 36')
+                fileconfig.write(config)
+
+    def bin2trs(self, delete_bin=True):
+        for f in self.filters:
+            ntraces, nsamples, min_size, traces_meta = self._bin2meta(f)
+            with open('%s_%i_%i.trs' % (f.keyword, ntraces, nsamples), 'wb') as trs:
+                trs.write('\x41\x04' + struct.pack('<I', ntraces))
+                trs.write('\x42\x04' + struct.pack('<I', nsamples))
+                # Sample Coding
+                #   bit 8-6: 000
+                #   bit 5:   integer(0) or float(1)
+                #   bit 4-1: sample length in bytes (1,2,4)
+                trs.write('\x43\x01' + chr(struct.calcsize('<B')))
+                # Length of crypto data
+                trs.write('\x44\x02' + struct.pack('<H', self.blocksize+self.blocksize))
+                # End of header
+                trs.write('\x5F\x00')
+                for filename, (iblock, oblock) in traces_meta.iteritems():
+                    trs.write(('%0*X%0*X' % (2*self.blocksize, iblock, 2*self.blocksize, oblock)).decode('hex'))
+                    with open(filename, 'rb') as trace:
+                        trs.write(serializechars(trace.read(min_size)))
+                    if delete_bin:
+                        os.remove(filename)
+
 class TracerPIN(Tracer):
     def __init__(self, target,
                    processinput=processinput,
