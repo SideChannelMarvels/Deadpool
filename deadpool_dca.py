@@ -171,7 +171,6 @@ class TracerPIN(Tracer):
                     mem_data=int(line[114:].replace(" ",""), 16)
                     for (k, tags, condition, extract, pack_fmt) in self.filters:
                         if mem_mode in tags and condition(self.stack_range, mem_addr, mem_size, mem_data):
-                            print "%s %X %i %X" % (mem_mode, mem_addr, mem_size, mem_data)
                             self._trace_data[k].append(extract(mem_addr, mem_size, mem_data))
         self._trace_dump()
         if not self.debug:
