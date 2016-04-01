@@ -15,4 +15,5 @@ T=TracerPIN('../target/wbDES', processinput, processoutput, ARCH.i386, 8)
 #T=TracerGrind('../target/wbDES', processinput, processoutput, ARCH.i386, 8, addr_range='0x08000000-0x08100000')
 T.run(100)
 T.bin2daredevil(config={'algorithm':'DES', 'position':'LUT/DES_SBOX', 'correct_key':'0x30 32 34 32 34 36 32 36'})
-#T.bin2daredevil(config={'algorithm':'DES', 'position':'LUT/DES_SBOX', 'des_switch':'DES_8_64_ROUND','correct_key':'0x30 32 34 32 34 36 32 36'})
+#T.bin2daredevil(configs={'attack_sbox': {'algorithm':'DES', 'position':'LUT/DES_SBOX', 'correct_key':'0x30 32 34 32 34 36 32 36'},
+#                         'attack_round':{'algorithm':'DES', 'position':'LUT/DES_SBOX', 'des_switch':'DES_8_64_ROUND','correct_key':'0x30 32 34 32 34 36 32 36'}})

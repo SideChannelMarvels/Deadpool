@@ -190,38 +190,12 @@ class Tracer(object):
         nsamples = min_size*8
         return (ntraces, nsamples, min_size, traces_meta)
 
-    def bin2daredevil(self, delete_bin=True, config={}, configname=''):
-        if 'threads' not in config:
-            config['threads']='8'
-        if 'algorithm' not in config:
-            config['algorithm']='AES\n#algorithm=DES'
-        if 'position' not in config:
-            config['position']='LUT/AES_AFTER_SBOX\n#position=LUT/DES_SBOX'
-        if 'des_switch' in config:
-            config['comment_des_switch']=''
-        else:
-            config['comment_des_switch']='#'
-            config['des_switch']='DES_8_64_ROUND'
-        if 'guess' not in config:
-            config['guess']='input'
-        if 'bytenum' not in config:
-            if 'correct_key' in config:
-                config['bytenum']='all'
-            else:
-                config['bytenum']='0'
-        if 'bitnum' not in config:
-            config['bitnum']='all'
-        if 'memory' not in config:
-            config['memory']='4G'
-        if 'top' not in config:
-            config['top']='20'
-        if 'correct_key' in config:
-            config['comment_correct_key']=''
-        else:
-            config['comment_correct_key']='#'
-            config['correct_key']='000102030405060708090a0b0c0d0e0f'
-        if configname:
-            configname+='.'
+    def bin2daredevil(self, delete_bin=True, config=None, configs=None):
+        assert config is None or configs is None
+        if config is not None:
+            configs={'':config}
+        if configs is None:
+            configs={'':{}}
         for f in self.filters:
             ntraces, nsamples, min_size, traces_meta = self._bin2meta(f)
             with open('%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), 'wb') as filetrace,\
@@ -234,7 +208,36 @@ class Tracer(object):
                         filetrace.write(serializechars(trace.read(min_size)))
                     if delete_bin:
                         os.remove(filename)
-            content="""
+            for configname, config in configs.iteritems():
+                if 'threads' not in config:
+                    config['threads']='8'
+                if 'algorithm' not in config:
+                    config['algorithm']='AES'
+                if 'position' not in config:
+                    config['position']='LUT/AES_AFTER_SBOX'
+                if 'des_switch' in config:
+                    config['position']+='\ndes_switch='+config['des_switch']
+                if 'guess' not in config:
+                    config['guess']='input'
+                if 'bytenum' not in config:
+                    if 'correct_key' in config:
+                        config['bytenum']='all'
+                    else:
+                        config['bytenum']='0'
+                if 'bitnum' not in config:
+                    config['bitnum']='all'
+                if 'memory' not in config:
+                    config['memory']='4G'
+                if 'top' not in config:
+                    config['top']='20'
+                if 'correct_key' in config:
+                    config['comment_correct_key']=''
+                else:
+                    config['comment_correct_key']='#'
+                    config['correct_key']='000102030405060708090a0b0c0d0e0f'
+                if configname:
+                    configname+='.'
+                content="""
 [Traces]
 files=1
 trace_type=i
@@ -255,7 +258,6 @@ order=1
 return_type=double
 algorithm=%s
 position=%s
-%sdes_switch=%s
 round=0
 bitnum=%s
 bytenum=%s
@@ -266,12 +268,11 @@ top=%s
        '%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), ntraces, nsamples, \
        '%s_%i_%i.%s' % (f.keyword, ntraces, nsamples, config['guess']), ntraces, self.blocksize, \
        config['threads'], config['algorithm'], config['position'], \
-       config['comment_des_switch'], config['des_switch'], \
        config['bitnum'], config['bytenum'], \
        config['comment_correct_key'], config['correct_key'], \
        config['memory'], config['top'])
-            with open('%s_%i_%i.%sconfig' % (f.keyword, ntraces, nsamples, configname), 'wb') as fileconfig:
-                fileconfig.write(content)
+                with open('%s_%i_%i.%sconfig' % (f.keyword, ntraces, nsamples, configname), 'wb') as fileconfig:
+                    fileconfig.write(content)
 
     def bin2trs(self, delete_bin=True):
         for f in self.filters:
