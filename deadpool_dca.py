@@ -191,7 +191,7 @@ class Tracer(object):
         nsamples = min_size/bytes_per_iblock_sample*8
         return (ntraces, nsamples, min_size, traces_meta)
 
-    def bin2daredevil(self, delete_bin=True, config={}):
+    def bin2daredevil(self, delete_bin=True, config={}, configname=''):
         if 'threads' not in config:
             config['threads']='8'
         if 'algorithm' not in config:
@@ -203,6 +203,8 @@ class Tracer(object):
         else:
             config['comment_des_switch']='#'
             config['des_switch']='DES_8_64_ROUND'
+        if 'guess' not in config:
+            config['guess']='input'
         if 'bytenum' not in config:
             if 'correct_key' in config:
                 config['bytenum']='all'
@@ -219,6 +221,8 @@ class Tracer(object):
         else:
             config['comment_correct_key']='#'
             config['correct_key']='000102030405060708090a0b0c0d0e0f'
+        if configname:
+            configname+='.'
         for f in self.filters:
             ntraces, nsamples, min_size, traces_meta = self._bin2meta(f)
             with open('%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), 'wb') as filetrace,\
@@ -245,7 +249,6 @@ files=1
 guess_type=u
 transpose=true
 guess=%s %i %i
-#guess=%s %i %i
 
 [General]
 threads=%s
@@ -261,15 +264,14 @@ bytenum=%s
 memory=%s
 top=%s
 """ % (nsamples, \
-           '%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), ntraces, nsamples, \
-           '%s_%i_%i.input' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
-           '%s_%i_%i.output' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
-           config['threads'], config['algorithm'], config['position'], \
-           config['comment_des_switch'], config['des_switch'], \
-           config['bitnum'], config['bytenum'], \
-           config['comment_correct_key'], config['correct_key'], \
-           config['memory'], config['top'])
-            with open('%s_%i_%i.config' % (f.keyword, ntraces, nsamples), 'wb') as fileconfig:
+       '%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), ntraces, nsamples, \
+       '%s_%i_%i.%s' % (f.keyword, ntraces, nsamples, config['guess']), ntraces, self.blocksize, \
+       config['threads'], config['algorithm'], config['position'], \
+       config['comment_des_switch'], config['des_switch'], \
+       config['bitnum'], config['bytenum'], \
+       config['comment_correct_key'], config['correct_key'], \
+       config['memory'], config['top'])
+            with open('%s_%i_%i.%sconfig' % (f.keyword, ntraces, nsamples, configname), 'wb') as fileconfig:
                 fileconfig.write(content)
 
     def bin2trs(self, delete_bin=True):
