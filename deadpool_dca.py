@@ -191,7 +191,34 @@ class Tracer(object):
         nsamples = min_size/bytes_per_iblock_sample*8
         return (ntraces, nsamples, min_size, traces_meta)
 
-    def bin2daredevil(self, delete_bin=True):
+    def bin2daredevil(self, delete_bin=True, config={}):
+        if 'threads' not in config:
+            config['threads']='8'
+        if 'algorithm' not in config:
+            config['algorithm']='AES\n#algorithm=DES'
+        if 'position' not in config:
+            config['position']='LUT/AES_AFTER_SBOX\n#position=LUT/DES_SBOX'
+        if 'des_switch' in config:
+            config['comment_des_switch']=''
+        else:
+            config['comment_des_switch']='#'
+            config['des_switch']='DES_8_64_ROUND'
+        if 'bytenum' not in config:
+            if 'correct_key' in config:
+                config['bytenum']='all'
+            else:
+                config['bytenum']='0'
+        if 'bitnum' not in config:
+            config['bitnum']='all'
+        if 'memory' not in config:
+            config['memory']='4G'
+        if 'top' not in config:
+            config['top']='20'
+        if 'correct_key' in config:
+            config['comment_correct_key']=''
+        else:
+            config['comment_correct_key']='#'
+            config['correct_key']='000102030405060708090a0b0c0d0e0f'
         for f in self.filters:
             ntraces, nsamples, min_size, traces_meta = self._bin2meta(f)
             with open('%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), 'wb') as filetrace,\
@@ -204,8 +231,7 @@ class Tracer(object):
                         filetrace.write(serializechars(trace.read(min_size)))
                     if delete_bin:
                         os.remove(filename)
-            with open('%s_%i_%i.config' % (f.keyword, ntraces, nsamples), 'wb') as fileconfig:
-                config="""
+            content="""
 [Traces]
 files=1
 trace_type=i
@@ -222,23 +248,29 @@ guess=%s %i %i
 #guess=%s %i %i
 
 [General]
-threads=8
+threads=%s
 order=1
 return_type=double
-algorithm=DES
-position=LUT/DES_SBOX
+algorithm=%s
+position=%s
+%sdes_switch=%s
 round=0
-bitnum=all
-bytenum=all
-correct_key=0x%s
-memory=4G
-top=20
-        """ % (nsamples, \
-               '%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), ntraces, nsamples, \
-               '%s_%i_%i.input' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
-               '%s_%i_%i.output' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
-               '30 32 34 32 34 36 32 36')
-                fileconfig.write(config)
+bitnum=%s
+bytenum=%s
+%scorrect_key=%s
+memory=%s
+top=%s
+""" % (nsamples, \
+           '%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), ntraces, nsamples, \
+           '%s_%i_%i.input' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
+           '%s_%i_%i.output' % (f.keyword, ntraces, nsamples), ntraces, self.blocksize, \
+           config['threads'], config['algorithm'], config['position'], \
+           config['comment_des_switch'], config['des_switch'], \
+           config['bitnum'], config['bytenum'], \
+           config['comment_correct_key'], config['correct_key'], \
+           config['memory'], config['top'])
+            with open('%s_%i_%i.config' % (f.keyword, ntraces, nsamples), 'wb') as fileconfig:
+                fileconfig.write(content)
 
     def bin2trs(self, delete_bin=True):
         for f in self.filters:
