@@ -104,6 +104,19 @@ class Tracer(object):
             if verbose:
                 print '%05i %0*X -> %0*X' % (i, 2*self.blocksize, iblock, 2*self.blocksize, oblock)
 
+    def _exec(self, cmd_list, debug=None):
+        if debug is None:
+            debug=self.debug
+        if debug:
+            print ' '.join(cmd_list)
+        if self.tolerate_error:
+            output=subprocess.check_output(' '.join(cmd_list) + '; exit 0', shell=True)
+        else:
+            output=subprocess.check_output(cmd_list)
+        if debug:
+            print output
+        return output
+
     def _trace_init(self, n, iblock, oblock):
         self._trace_meta=(n, iblock, oblock)
         self._trace_data={}
@@ -146,12 +159,7 @@ class TracerPIN(Tracer):
 
     def get_trace(self, n, iblock):
         cmd_list=['Tracer', '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--', self.target] + self.processinput(iblock, self.blocksize)
-        if self.debug:
-            print ' '.join(cmd_list)
-        if self.tolerate_error:
-            output=subprocess.check_output(' '.join(cmd_list) + '; exit 0', shell=True)
-        else:
-            output=subprocess.check_output(cmd_list)
+        output=self._exec(cmd_list)
         oblock=self.processoutput(output, self.blocksize)
         self._trace_init(n, iblock, oblock)
         with open(self.tmptracefile, 'r') as trace:
@@ -163,10 +171,20 @@ class TracerPIN(Tracer):
                     mem_data=int(line[114:].replace(" ",""), 16)
                     for (k, tags, condition, extract, pack_fmt) in self.filters:
                         if mem_mode in tags and condition(self.stack_range, mem_addr, mem_size, mem_data):
+                            print "%s %X %i %X" % (mem_mode, mem_addr, mem_size, mem_data)
                             self._trace_data[k].append(extract(mem_addr, mem_size, mem_data))
         self._trace_dump()
-        os.remove(self.tmptracefile)
+        if not self.debug:
+            os.remove(self.tmptracefile)
         return oblock
+
+    def run_once(self, iblock=None, tracefile=None):
+        if iblock is None:
+            iblock=random.randint(0, (1<<(8*self.blocksize))-1)
+        if tracefile is None:
+            tracefile = self.tmptracefile
+        cmd_list=['Tracer', '-f', str(self.addr_range), '-o', tracefile, '--', self.target] + self.processinput(iblock, self.blocksize)
+        output=self._exec(cmd_list, debug=True)
 
 class TracerGrind(Tracer):
     def __init__(self, target,
@@ -193,15 +211,11 @@ class TracerGrind(Tracer):
 
     def get_trace(self, n, iblock):
         cmd_list=['valgrind', '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind', self.target] + self.processinput(iblock, self.blocksize)
-        if self.debug:
-            print ' '.join(cmd_list)
-        if self.tolerate_error:
-            output=subprocess.check_output(' '.join(cmd_list) + '; exit 0', shell=True)
-        else:
-            output=subprocess.check_output(cmd_list)
+        output=self._exec(cmd_list)
         oblock=self.processoutput(output, self.blocksize)
         output=subprocess.check_output("texttrace %s >(grep '^.M' > %s)" % (self.tmptracefile+'.grind', self.tmptracefile), shell=True, executable='/bin/bash')
-        os.remove(self.tmptracefile+'.grind')
+        if not self.debug:
+            os.remove(self.tmptracefile+'.grind')
         self._trace_init(n, iblock, oblock)
         with open(self.tmptracefile, 'r') as trace:
             for line in iter(trace.readline, ''):
@@ -213,8 +227,19 @@ class TracerGrind(Tracer):
                     if mem_mode in tags and condition(self.stack_range, mem_addr, mem_size, mem_data):
                         self._trace_data[k].append(extract(mem_addr, mem_size, mem_data))
         self._trace_dump()
-        os.remove(self.tmptracefile)
+        if not self.debug:
+            os.remove(self.tmptracefile)
         return oblock
+
+    def run_once(self, iblock=None, tracefile=None):
+        if iblock is None:
+            iblock=random.randint(0, (1<<(8*self.blocksize))-1)
+        if tracefile is None:
+            tracefile = self.tmptracefile
+        cmd_list=['valgrind', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind', self.target] + self.processinput(iblock, self.blocksize)
+        output=self._exec(cmd_list, debug=True)
+        output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind',tracefile))
+        os.remove(tracefile+'.grind')
 
 def serializechars(s, _out={}):
     """Replaces each byte of the string by 8 bytes representing the bits, starting with their LSB
