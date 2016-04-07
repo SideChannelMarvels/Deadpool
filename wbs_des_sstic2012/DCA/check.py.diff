@@ -1,0 +1,40 @@
+--- check.py	2016-02-19 14:48:38.000000000 +0100
++++ check.py.2	2016-04-07 19:27:01.459576772 +0200
+@@ -37,6 +37,8 @@
+                 self[i:i+8] = Bits(o, 8).bitlist()[::-1]
+                 i += 8
+         if size: self.size = size
++        global trace
++        trace.append((self.size, self.ival))
+ 
+     def __len__(self):
+         return self.size
+@@ -456,7 +458,7 @@
+             raise NotImplementedError
+                 
+ 
+-if __name__ == "__main__":
++if True:
+     WT = pickle.loads("""ccopy_reg
+ _reconstructor
+ p0
+@@ -50098,18 +50100,3 @@
+ tp220
+ tp221
+ asb.""")
+-    if len(sys.argv) == 1:
+-        print "Usage: python check.pyc <key>"
+-        print "   - key: a 64 bits hexlify-ed string"
+-        print "Example: python check.pyc 0123456789abcdef"
+-    else:
+-        K = Bits(a2b_hex(sys.argv[1]), 64)
+-        assert K[range(7,64,8)] == 175
+-        M = Bits(random.getrandbits(64), 64)
+-
+-
+-        
+-        if hex(WT._cipher(M, 1)) == hex(enc(K, M)):
+-            exit(0)
+-        else:
+-            exit(1)
+\ No newline at end of file
