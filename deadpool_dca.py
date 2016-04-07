@@ -56,7 +56,7 @@ class ARCH:
     amd64 = 1
 
 class FILTER:
-    def __init__(self, keyword, modes, condition, extract, extract_fmt):
+    def __init__(self, keyword, modes=[], condition=None, extract=None, extract_fmt=None):
         self.keyword=keyword
         self.modes=modes
         self.condition=condition
@@ -323,7 +323,7 @@ top=%s
                         os.remove(filename)
 
 class TracerPIN(Tracer):
-    def __init__(self, target,
+    def __init__(self, target='',
                    processinput=processinput,
                    processoutput=processoutput,
                    arch=ARCH.amd64,
@@ -392,7 +392,7 @@ class TracerPIN(Tracer):
         output=self._exec(cmd_list, debug=True)
 
 class TracerGrind(Tracer):
-    def __init__(self, target,
+    def __init__(self, target='',
                    processinput=processinput,
                    processoutput=processoutput,
                    arch=ARCH.amd64,
