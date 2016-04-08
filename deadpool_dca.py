@@ -55,7 +55,7 @@ class ARCH:
     i386  = 0
     amd64 = 1
 
-class FILTER:
+class Filter:
     def __init__(self, keyword, modes=[], condition=None, extract=None, extract_fmt=None):
         self.keyword=keyword
         self.modes=modes
@@ -63,18 +63,173 @@ class FILTER:
         self.extract=extract
         self.extract_fmt=extract_fmt
         self.record_info=False
+    def __str__(self):
+        return self.keyword
 
-class DEFAULT_FILTERS:
+class DefaultFilters:
     # Bytes written on stack:
-    stack_w1      =FILTER('stack_w1', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 1, lambda addr, size, data: data, '<B')
-    stack_w4      =FILTER('stack_w4', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 4, lambda addr, size, data: data, '<I')
+    stack_w1      =Filter('stack_w1', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 1, lambda addr, size, data: data, '<B')
+    stack_w4      =Filter('stack_w4', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 4, lambda addr, size, data: data, '<I')
     # Low byte(s) address of data read from data segment:
-    mem_addr1_rw1 =FILTER('mem_addr1_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFF, '<B')
-    mem_addr1_rw4 =FILTER('mem_addr1_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: addr & 0xFF, '<B')
-    mem_addr2_rw1 =FILTER('mem_addr2_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFFFF, '<H')
+    mem_addr1_rw1 =Filter('mem_addr1_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFF, '<B')
+    mem_addr1_rw4 =Filter('mem_addr1_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: addr & 0xFF, '<B')
+    mem_addr2_rw1 =Filter('mem_addr2_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFFFF, '<H')
     # Bytes read from data segment:
-    mem_data_rw1  =FILTER('mem_data_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: data, '<B')
-    mem_data_rw4  =FILTER('mem_data_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: data, '<I')
+    mem_data_rw1  =Filter('mem_data_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: data, '<B')
+    mem_data_rw4  =Filter('mem_data_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: data, '<I')
+
+DEFAULT_FILTERS=[DefaultFilters.stack_w1, DefaultFilters.mem_addr1_rw1, DefaultFilters.mem_data_rw1]
+
+def findbin(keyword):
+    n=len(glob.glob('trace_%s_*.bin' % keyword))
+    assert n > 0
+    traces_meta={}
+    min_size=None
+    iblock_available=True
+    oblock_available=True
+    for filename in glob.glob('trace_%s_*.bin' % keyword):
+        i,iblock,oblock=filename[len('trace_%s_' % keyword):-len('.bin')].split('_')
+        if iblock!='na':
+            blocksize=len(iblock)/2
+            assert iblock_available==True
+        else:
+            iblock_available=False
+        if oblock!='na':
+            if not iblock_available:
+                blocksize=len(oblock)/2
+            else:
+                assert blocksize==len(oblock)/2
+            assert oblock_available==True
+        else:
+            oblock_available=False
+        filesize = os.path.getsize(filename)
+        if not min_size or min_size > filesize:
+            min_size = filesize
+        traces_meta[filename] = [iblock, oblock]
+    ntraces = len(traces_meta)
+    nsamples = min_size*8
+    return (ntraces, nsamples, min_size, blocksize, traces_meta, iblock_available, oblock_available)
+
+def bin2daredevil(keyword=None, keywords=None, delete_bin=True, config=None, configs=None):
+    assert keyword is None or keywords is None
+    if keyword is not None:
+        keywords=[keyword]
+    if keywords is None:
+        keywords=DEFAULT_FILTERS
+    assert config is None or configs is None
+    if config is not None:
+        configs={'':config}
+    if configs is None:
+        configs={'':{}}
+    for keyword in keywords:
+        ntraces, nsamples, min_size, blocksize, traces_meta, iblock_available, oblock_available = findbin(keyword)
+        with open('%s_%i_%i.trace' % (keyword, ntraces, nsamples), 'wb') as filetrace,\
+             open('%s_%i_%i.input' % (keyword, ntraces, nsamples), 'wb') as fileinput,\
+             open('%s_%i_%i.output' % (keyword, ntraces, nsamples), 'wb') as fileoutput:
+            for filename, (iblock, oblock) in traces_meta.iteritems():
+                if iblock_available:
+                    fileinput.write(iblock.decode('hex'))
+                if oblock_available:
+                    fileoutput.write(oblock.decode('hex'))
+                with open(filename, 'rb') as trace:
+                    filetrace.write(serializechars(trace.read(min_size)))
+                if delete_bin:
+                    os.remove(filename)
+        for configname, config in configs.iteritems():
+            if 'threads' not in config:
+                config['threads']='8'
+            if 'algorithm' not in config:
+                config['algorithm']='AES'
+            if 'position' not in config:
+                config['position']='LUT/AES_AFTER_SBOX'
+            if 'des_switch' in config:
+                config['position']+='\ndes_switch='+config['des_switch']
+            if 'guess' not in config:
+                config['guess']='input'
+            if 'bytenum' not in config:
+                if 'correct_key' in config:
+                    config['bytenum']='all'
+                else:
+                    config['bytenum']='0'
+            if 'bitnum' not in config:
+                config['bitnum']='all'
+            if 'memory' not in config:
+                config['memory']='4G'
+            if 'top' not in config:
+                config['top']='20'
+            if 'correct_key' in config:
+                config['comment_correct_key']=''
+            else:
+                config['comment_correct_key']='#'
+                config['correct_key']='000102030405060708090a0b0c0d0e0f'
+            if configname:
+                configname+='.'
+            content="""
+[Traces]
+files=1
+trace_type=i
+transpose=true
+index=0
+nsamples=%i
+trace=%s %i %i
+
+[Guesses]
+files=1
+guess_type=u
+transpose=true
+guess=%s %i %i
+
+[General]
+threads=%s
+order=1
+return_type=double
+algorithm=%s
+position=%s
+round=0
+bitnum=%s
+bytenum=%s
+%scorrect_key=%s
+memory=%s
+top=%s
+""" % (nsamples, \
+   '%s_%i_%i.trace' % (keyword, ntraces, nsamples), ntraces, nsamples, \
+   '%s_%i_%i.%s' % (keyword, ntraces, nsamples, config['guess']), ntraces, blocksize, \
+   config['threads'], config['algorithm'], config['position'], \
+   config['bitnum'], config['bytenum'], \
+   config['comment_correct_key'], config['correct_key'], \
+   config['memory'], config['top'])
+            with open('%s_%i_%i.%sconfig' % (keyword, ntraces, nsamples, configname), 'wb') as fileconfig:
+                fileconfig.write(content)
+
+def bin2trs(keyword=None, keywords=None, delete_bin=True):
+    assert keyword is None or keywords is None
+    if keyword is not None:
+        keywords=[keyword]
+    if keywords is None:
+        keywords=DEFAULT_FILTERS
+    for keyword in keywords:
+        ntraces, nsamples, min_size, blocksize, traces_meta, iblock_available, oblock_available = findbin(keyword)
+        with open('%s_%i_%i.trs' % (keyword, ntraces, nsamples), 'wb') as trs:
+            trs.write('\x41\x04' + struct.pack('<I', ntraces))
+            trs.write('\x42\x04' + struct.pack('<I', nsamples))
+            # Sample Coding
+            #   bit 8-6: 000
+            #   bit 5:   integer(0) or float(1)
+            #   bit 4-1: sample length in bytes (1,2,4)
+            trs.write('\x43\x01' + chr(struct.calcsize('<B')))
+            # Length of crypto data
+            trs.write('\x44\x02' + struct.pack('<H', blocksize*iblock_available+blocksize*oblock_available))
+            # End of header
+            trs.write('\x5F\x00')
+            for filename, (iblock, oblock) in traces_meta.iteritems():
+                if iblock_available:
+                    trs.write(('%0*X' % (2*blocksize, iblock)).decode('hex'))
+                if oblock_available:
+                    trs.write(('%0*X' % (2*blocksize, oblock)).decode('hex'))
+                with open(filename, 'rb') as trace:
+                    trs.write(serializechars(trace.read(min_size)))
+                if delete_bin:
+                    os.remove(filename)
 
 class Tracer(object):
     def __init__(self, target,
@@ -102,7 +257,7 @@ class Tracer(object):
         if self.stack_range != 'default':
             self.stack_range=(int(stack_range[:stack_range.index('-')], 16), int(stack_range[stack_range.index('-')+1:], 16))
         if filters == 'default':
-            self.filters=[DEFAULT_FILTERS.stack_w1, DEFAULT_FILTERS.mem_addr1_rw1, DEFAULT_FILTERS.mem_data_rw1]
+            self.filters=DEFAULT_FILTERS
         else:
             self.filters=filters
         self.tolerate_error=tolerate_error
@@ -182,148 +337,8 @@ class Tracer(object):
         if self.verbose:
             print '%05i %s -> %s' % (n, iblockstr, oblockstr)
 
-    def _bin2meta(self, f):
-        # There is purposely no internal link with run() data, everything is read again from files
-        # because it may have been obtained from several instances running in parallel
-        n=len(glob.glob('trace_%s_*.bin' % f.keyword))
-        assert n > 0
-        traces_meta={}
-        min_size=None
-        iblock_available=True
-        oblock_available=True
-        for filename in glob.glob('trace_%s_*.bin' % f.keyword):
-            i,iblock,oblock=filename[len('trace_%s_' % f.keyword):-len('.bin')].split('_')
-            if iblock!='na':
-                assert self.blocksize==len(iblock)/2
-                assert iblock_available==True
-            else:
-                iblock_available=False
-            if oblock!='na':
-                assert self.blocksize==len(oblock)/2
-                assert oblock_available==True
-            else:
-                oblock_available=False
-            filesize = os.path.getsize(filename)
-            if not min_size or min_size > filesize:
-                min_size = filesize
-            traces_meta[filename] = [iblock, oblock]
-        ntraces = len(traces_meta)
-        nsamples = min_size*8
-        return (ntraces, nsamples, min_size, traces_meta, iblock_available, oblock_available)
-
-    def bin2daredevil(self, delete_bin=True, config=None, configs=None):
-        assert config is None or configs is None
-        if config is not None:
-            configs={'':config}
-        if configs is None:
-            configs={'':{}}
-        for f in self.filters:
-            ntraces, nsamples, min_size, traces_meta, iblock_available, oblock_available = self._bin2meta(f)
-            with open('%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), 'wb') as filetrace,\
-                 open('%s_%i_%i.input' % (f.keyword, ntraces, nsamples), 'wb') as fileinput,\
-                 open('%s_%i_%i.output' % (f.keyword, ntraces, nsamples), 'wb') as fileoutput:
-                for filename, (iblock, oblock) in traces_meta.iteritems():
-                    if iblock_available:
-                        fileinput.write(iblock.decode('hex'))
-                    if oblock_available:
-                        fileoutput.write(oblock.decode('hex'))
-                    with open(filename, 'rb') as trace:
-                        filetrace.write(serializechars(trace.read(min_size)))
-                    if delete_bin:
-                        os.remove(filename)
-            for configname, config in configs.iteritems():
-                if 'threads' not in config:
-                    config['threads']='8'
-                if 'algorithm' not in config:
-                    config['algorithm']='AES'
-                if 'position' not in config:
-                    config['position']='LUT/AES_AFTER_SBOX'
-                if 'des_switch' in config:
-                    config['position']+='\ndes_switch='+config['des_switch']
-                if 'guess' not in config:
-                    config['guess']='input'
-                if 'bytenum' not in config:
-                    if 'correct_key' in config:
-                        config['bytenum']='all'
-                    else:
-                        config['bytenum']='0'
-                if 'bitnum' not in config:
-                    config['bitnum']='all'
-                if 'memory' not in config:
-                    config['memory']='4G'
-                if 'top' not in config:
-                    config['top']='20'
-                if 'correct_key' in config:
-                    config['comment_correct_key']=''
-                else:
-                    config['comment_correct_key']='#'
-                    config['correct_key']='000102030405060708090a0b0c0d0e0f'
-                if configname:
-                    configname+='.'
-                content="""
-[Traces]
-files=1
-trace_type=i
-transpose=true
-index=0
-nsamples=%i
-trace=%s %i %i
-
-[Guesses]
-files=1
-guess_type=u
-transpose=true
-guess=%s %i %i
-
-[General]
-threads=%s
-order=1
-return_type=double
-algorithm=%s
-position=%s
-round=0
-bitnum=%s
-bytenum=%s
-%scorrect_key=%s
-memory=%s
-top=%s
-""" % (nsamples, \
-       '%s_%i_%i.trace' % (f.keyword, ntraces, nsamples), ntraces, nsamples, \
-       '%s_%i_%i.%s' % (f.keyword, ntraces, nsamples, config['guess']), ntraces, self.blocksize, \
-       config['threads'], config['algorithm'], config['position'], \
-       config['bitnum'], config['bytenum'], \
-       config['comment_correct_key'], config['correct_key'], \
-       config['memory'], config['top'])
-                with open('%s_%i_%i.%sconfig' % (f.keyword, ntraces, nsamples, configname), 'wb') as fileconfig:
-                    fileconfig.write(content)
-
-    def bin2trs(self, delete_bin=True):
-        for f in self.filters:
-            ntraces, nsamples, min_size, traces_meta, iblock_available, oblock_available = self._bin2meta(f)
-            with open('%s_%i_%i.trs' % (f.keyword, ntraces, nsamples), 'wb') as trs:
-                trs.write('\x41\x04' + struct.pack('<I', ntraces))
-                trs.write('\x42\x04' + struct.pack('<I', nsamples))
-                # Sample Coding
-                #   bit 8-6: 000
-                #   bit 5:   integer(0) or float(1)
-                #   bit 4-1: sample length in bytes (1,2,4)
-                trs.write('\x43\x01' + chr(struct.calcsize('<B')))
-                # Length of crypto data
-                trs.write('\x44\x02' + struct.pack('<H', self.blocksize*iblock_available+self.blocksize*oblock_available))
-                # End of header
-                trs.write('\x5F\x00')
-                for filename, (iblock, oblock) in traces_meta.iteritems():
-                    if iblock_available:
-                        trs.write(('%0*X' % (2*self.blocksize, iblock)).decode('hex'))
-                    if oblock_available:
-                        trs.write(('%0*X' % (2*self.blocksize, oblock)).decode('hex'))
-                    with open(filename, 'rb') as trace:
-                        trs.write(serializechars(trace.read(min_size)))
-                    if delete_bin:
-                        os.remove(filename)
-
 class TracerPIN(Tracer):
-    def __init__(self, target='',
+    def __init__(self, target,
                    processinput=processinput,
                    processoutput=processoutput,
                    arch=ARCH.amd64,
@@ -392,7 +407,7 @@ class TracerPIN(Tracer):
         output=self._exec(cmd_list, debug=True)
 
 class TracerGrind(Tracer):
-    def __init__(self, target='',
+    def __init__(self, target,
                    processinput=processinput,
                    processoutput=processoutput,
                    arch=ARCH.amd64,
