@@ -23,7 +23,7 @@ for i in range(25):
     plain=hex(M).encode('hex')
     cipher=hex(C).encode('hex')
     print "%05i %s -> %s" % (i, plain, cipher)
-    fiteredtrace=remove_duplicates([(s, v) for s,v in check.trace if s == 96])
+    filteredtrace=remove_duplicates([(s, v) for s,v in check.trace if s == 96])
     with open('trace_%s_%04i_%s_%s.bin' % (keyword, i, plain, cipher), 'wb') as trace:
-        trace.write(''.join(["%0*x" % (s/4, v) for s,v in fiteredtrace]).decode('hex'))
+        trace.write(''.join(["%0*x" % (s/4, v) for s,v in filteredtrace]).decode('hex'))
     del(check.trace)
