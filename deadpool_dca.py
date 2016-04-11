@@ -242,6 +242,7 @@ class Tracer(object):
                    stack_range,
                    filters,
                    tolerate_error,
+                   shell,
                    debug):
         self.target=target.split()
         self.processinput=processinput
@@ -261,6 +262,7 @@ class Tracer(object):
         else:
             self.filters=filters
         self.tolerate_error=tolerate_error
+        self.shell=shell
         self.debug=debug
 
     def run(self, n, verbose=True):
@@ -297,7 +299,9 @@ class Tracer(object):
         if debug:
             print ' '.join(cmd_list)
         if self.tolerate_error:
-            output=subprocess.check_output(' '.join(cmd_list) + '; exit 0', shell=True)
+            output=subprocess.check_output(' '.join(cmd_list) + '; exit 0', shell=True, executable='/bin/bash')
+        elif self.shell:
+            output=subprocess.check_output(' '.join(cmd_list), shell=True, executable='/bin/bash')
         else:
             output=subprocess.check_output(cmd_list)
         if debug:
@@ -348,9 +352,10 @@ class TracerPIN(Tracer):
                    stack_range='default',
                    filters='default',
                    tolerate_error=False,
+                   shell=False,
                    debug=False,
                    record_info=True):
-        super(TracerPIN, self).__init__(target, processinput, processoutput, arch, blocksize, tmptracefile, addr_range, stack_range, filters, tolerate_error, debug)
+        super(TracerPIN, self).__init__(target, processinput, processoutput, arch, blocksize, tmptracefile, addr_range, stack_range, filters, tolerate_error, shell, debug)
         # Execution address range
         # 0 = all
         # 1 = filter system libraries
@@ -417,9 +422,10 @@ class TracerGrind(Tracer):
                    stack_range='default',
                    filters='default',
                    tolerate_error=False,
+                   shell=False,
                    debug=False,
                    record_info=False):
-        super(TracerGrind, self).__init__(target, processinput, processoutput, arch, blocksize, tmptracefile, addr_range, stack_range, filters, tolerate_error, debug)
+        super(TracerGrind, self).__init__(target, processinput, processoutput, arch, blocksize, tmptracefile, addr_range, stack_range, filters, tolerate_error, shell, debug)
         # Execution address range
         # Valgrind: reduce at least to 0x400000-0x3ffffff to avoid self-tracing
         if addr_range == 'default':
