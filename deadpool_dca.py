@@ -231,6 +231,28 @@ def bin2trs(keyword=None, keywords=None, delete_bin=True):
                 if delete_bin:
                     os.remove(filename)
 
+def sample2event(sample, filtr, target):
+    # returns (event number, optional list of details (mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, src_line_info))
+    # assuming serialized samples
+    ievent=int(math.ceil(float(sample)/struct.calcsize(filtr.extract_fmt)/8))
+    # Let's see if we've more info...
+    eventlist=[]
+    for filename in glob.glob('trace_%s_*.info' % filtr.keyword):
+        with open(filename) as info:
+            for i, line in enumerate(info):
+                if i+1 == ievent:
+                    mem_mode, item, ins_addr, mem_addr, mem_size, mem_data = line.split()
+                    item, ins_addr, mem_addr, mem_size, mem_data=int(item), int(ins_addr, 16), int(mem_addr, 16), int(mem_size), int(mem_data, 16)
+                    try:
+                        output=subprocess.check_output(['addr2line', '-e', target, '0x%X'%ins_addr])
+                        output=output.split('/')[-1].strip()
+                    except:
+                        output=''
+                    eventlist.append((mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, output))
+                elif i > ievent:
+                    break
+    return (ievent, eventlist)
+
 class Tracer(object):
     def __init__(self, target,
                    processinput,
@@ -270,28 +292,6 @@ class Tracer(object):
         for i in range(n):
             iblock=random.randint(0, (1<<(8*self.blocksize))-1)
             oblock=self.get_trace(i, iblock)
-
-    def sample2event(self, sample, filtr):
-        # returns (event number, optional list of details (mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, src_line_info))
-        # assuming serialized samples
-        ievent=int(math.ceil(float(sample)/struct.calcsize(filtr.extract_fmt)/8))
-        # Let's see if we've more info...
-        eventlist=[]
-        for filename in glob.glob('trace_%s_*.info' % filtr.keyword):
-            with open(filename) as info:
-                for i, line in enumerate(info):
-                    if i+1 == ievent:
-                        mem_mode, item, ins_addr, mem_addr, mem_size, mem_data = line.split()
-                        item, ins_addr, mem_addr, mem_size, mem_data=int(item), int(ins_addr, 16), int(mem_addr, 16), int(mem_size), int(mem_data, 16)
-                        try:
-                            output=subprocess.check_output(['addr2line', '-e', self.target[-1], '0x%X'%ins_addr])
-                            output=output.split('/')[-1].strip()
-                        except:
-                            output=''
-                        eventlist.append((mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, output))
-                    elif i > ievent:
-                        break
-        return (ievent, eventlist)
 
     def _exec(self, cmd_list, debug=None):
         if debug is None:
