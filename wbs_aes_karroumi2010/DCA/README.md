@@ -24,5 +24,6 @@ By default the script is using TracerPIN but if you want you can change it to us
 Executing the differential analysis on the converted traces:
 
 ```bash
-daredevil -c mem_addr1_rw1_100_72080.config
+daredevil -c mem_addr1_rw1_2000_17096.attack_sbox.config
+daredevil -c mem_addr1_rw1_2000_17096.attack_multinv.config
 ```
