@@ -9,9 +9,7 @@ cmake .
 make
 ```
 
-You'll find here the result of the compilation of a slightly patched version to be able with fds as input, cf example below.
-So the compiled version is from this commit: https://github.com/doegox/Whitebox-crypto-AES/commit/4f4c2cf73840b0c795be8cd4a6045e1ba8f5ece0
-plus the re-introduction of the optimization flag in CMakeLists.txt:
+You'll find here the result of the compilation of a slightly patched version to re-introduce the optimization flag in CMakeLists.txt, from commit b59be34f:
 
 ```diff
 -set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
