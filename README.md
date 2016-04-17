@@ -13,8 +13,7 @@ Differential Computation Analysis: Hiding your White-Box Designs is Not Enough
 Cryptology ePrint Archive, Report 2015/753, IACR, 2015.  
 http://eprint.iacr.org/2015/753.pdf
 
-
-Attacks presented in the paper were performed partly with a proprietary tool, that we are in the process of replacing by
+Attacks presented in the paper were performed partly with a proprietary tool, that we replaced by
 an opensource variant (Daredevil) in order to have a completely opensource toolchain.
-Therefore this repository doesn't contain yet all the attacks described in the paper.
-More will come soon, missing features will be implemented in Daredevil to support all described attacks.
+
+The DFA attacks are leveraged by JeanGrey project, also available at https://github.com/SideChannelMarvels/.
