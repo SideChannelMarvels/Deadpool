@@ -84,6 +84,48 @@ return None
 
 ### Filters
 
+What to trace is expressed by a list of filters. A ```Filter``` class is provided to help building filters.
+
+```python
+f=Filter(keyword, modes, condition, extract, extract_fmt)
+```
+ * ```keyword```: string that resumes the functionality of the filter. It will be used to build the filenames of the traces.
+ * ```modes```: list of strings indicating which actions to capture, reads (```'R'```) and/or writes (```'W'```)
+ * ```condition```: a function taking as arguments 
+   * ```stack_range``` (a list or tuple of two ints indicating the boundaries of what to be considered as the stack)
+   * ```addr``` (the current memory access address)
+   * ```size``` (size of current memory access data)
+   * ```data``` (current memory access data)
+   * return value: True if conditions are met to record information about current event, else False
+ * ```extract```: a function taking as arguments
+   * ```addr``` (the current memory access address)
+   * ```size``` (size of current memory access data)
+   * ```data``` (current memory access data)
+   * return value: the element to be recorded
+ * ```extract_fmt```: a [packing format string](https://docs.python.org/2/library/struct.html) for the element to be recorded
+
+A few usual filters are already defined in ```deadpool_dca.py``` in the ```DefaultFilters``` class
+
+```python
+class DefaultFilters:
+    # Bytes written on stack:
+    stack_w1      =Filter('stack_w1', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 1, lambda addr, size, data: data, '<B')
+    stack_w4      =Filter('stack_w4', ['W'], lambda stack_range, addr, size, data: stack_range[0] <= addr <= stack_range[1] and size == 4, lambda addr, size, data: data, '<I')
+    # Low byte(s) address of data read from data segment:
+    mem_addr1_rw1 =Filter('mem_addr1_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFF, '<B')
+    mem_addr1_rw4 =Filter('mem_addr1_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: addr & 0xFF, '<B')
+    mem_addr2_rw1 =Filter('mem_addr2_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: addr & 0xFFFF, '<H')
+    # Bytes read from data segment:
+    mem_data_rw1  =Filter('mem_data_rw1', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 1, lambda addr, size, data: data, '<B')
+    mem_data_rw4  =Filter('mem_data_rw4', ['R', 'W'], lambda stack_range, addr, size, data: (addr < stack_range[0] or addr > stack_range[1]) and size == 4, lambda addr, size, data: data, '<I')
+```
+
+So one can use any of them as shortcuts, e.g.:
+
+```python.
+myfilters=[DefaultFilters.stack_w4, DefaultFilters.mem_data_rw4]
+```
+
 ### Tracing
 
 ### Converting binary traces to formats suitable for CPA tools
