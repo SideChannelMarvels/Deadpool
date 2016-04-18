@@ -36,6 +36,26 @@ import time
 import random
 import copy
 
+def processinput(iblock, blocksize):
+    """processinput() helper function
+   iblock: int representation of one input block
+   blocksize: int (8 for DES, 16 for AES)
+   returns a list of strings to be used as args for the target
+   default processinput(): returns one string containing the block in hex
+"""
+    # return None if input can't be injected
+    return ['%0*x' % (2*blocksize, iblock)]
+
+def processoutput(output, blocksize):
+    """processoutput() helper function
+   output: string, textual output of the target
+   blocksize: int (8 for DES, 16 for AES)
+   returns a int, supposed to be the data block outputted by the target
+   default processouput(): expects the output to be directly the block in hex
+"""
+    # return None if there is no output available
+    return int(output, 16)
+
 def try_processoutput(processoutput):
     def foo(output, blocksize):
         try:
@@ -47,8 +67,8 @@ def try_processoutput(processoutput):
 class Acquisition:
     def __init__(self, targetbin, targetdata, goldendata, dfa,
                 iblock=0x74657374746573747465737474657374,
-                processinput= lambda iblock: ['%0*x' % (2*16, iblock)],
-                processoutput = lambda output: int(output.strip(), 16),
+                processinput=processinput,
+                processoutput=processoutput,
                 verbose=1,
                 maxleaf=256*256,
                 minleaf=64,
