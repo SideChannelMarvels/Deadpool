@@ -22,19 +22,14 @@
 #########################################################################
 
 import os
-import stat
+import sys
 import random
 import subprocess
-import glob
 import struct
-import shutil
 import datetime
 from collections import deque
 import signal
-import sys
 import time
-import random
-import copy
 
 def processinput(iblock, blocksize):
     """processinput() helper function
