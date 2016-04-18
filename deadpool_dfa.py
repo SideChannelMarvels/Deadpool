@@ -48,7 +48,9 @@ def processoutput(output, blocksize):
    returns a int, supposed to be the data block outputted by the target
    default processouput(): expects the output to be directly the block in hex
 """
-    # return None if there is no output available
+    # DFA is only possible in presence of output so this function is supposed
+    # to return an output under normal conditions.
+    # If the fault injection leads to a failure without exploitable output, return None
     return int(output, 16)
 
 def try_processoutput(processoutput):
