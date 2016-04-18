@@ -101,6 +101,8 @@ class Acquisition:
         self.iblock=iblock
         # prepares iblock as list of strings based on its int representation
         self.processed_input=processinput(self.iblock, self.blocksize)
+        if not self.processed_input:
+            self.processed_input=[]
         # from output bytes returns oblock as int
         # If program may crash, make sure processoutput() returns None in such cases
         self.processoutput = try_processoutput(processoutput)
