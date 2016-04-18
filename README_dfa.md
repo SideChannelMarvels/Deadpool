@@ -68,3 +68,9 @@ Expecting one of the output lines to be the hex dump of the output:
 ```python
 return int(''.join([x for x in output.split('\n') if len(x)==32][0]), 16)
 ```
+
+### Acquisition
+
+The current ```deadpool_dfa``` injects faults statically into a data file or an executable before execution. If there are integrity checks on the data or on the executable it should fail and a dynamic fault injection is required. That will be a future step.
+
+TODO

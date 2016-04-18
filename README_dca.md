@@ -177,11 +177,30 @@ Traces are recorded in binary files with a very easy structure as we saw in the 
 
 #### ```bin2daredevil```
 
-TODO 
+```bin2daredevil``` converts a set of binary trace files into a set of files suitable for Daredevil. Arguments:
+
+  * ```keyword```: keyword of the trace set to use. Instead of a string you can provide directly the corresponding Filter that was used to create that set. But if you produce traces by yourself, no need to create a Filter.
+  * ```keywords```: alternatively, you can provide a list of keywords, or a list of Filters.  
+  Default: (only if ```keyword``` is not defined) the set of default Filters, cf ```filters``` of ```Tracer``` above.
+  * ```delete_bin```: shall we delete binary files while they are converted?
+  Default: True
+  * ```config``` or ```configs```: (dict of) configuration, see below.
+  Default: some standard configuration suitable for CPA against first round of AES encryption.
+
+A configuration is a dictionary of elements recognized by Daredevil. The following keywords are supported:  
+threads, algorithm, position, des_switch, guess, bytenum, bitnum, correct_key, memory, top.  
+For ```guess``` there is a shortcut: just tell ```input``` or ```output``` depending if you want to attack the first or the last round.
+
 
 #### ```bin2trs```
 
-TODO
+Alternatively ```bin2trs``` converts a set of binary trace files into a (set of) tracefile suitable for Riscure Inspector. Arguments:
+
+  * ```keyword```: keyword of the trace set to use. Instead of a string you can provide directly the corresponding Filter that was used to create that set. But if you produce traces by yourself, no need to create a Filter.
+  * ```keywords```: alternatively, you can provide a list of keywords, or a list of Filters.  
+  Default: (only if ```keyword``` is not defined) the set of default Filters, cf ```filters``` of ```Tracer``` above.
+  * ```delete_bin```: shall we delete binary files while they are converted?
+  Default: True
 
 ### Misc helpers
 
@@ -195,7 +214,8 @@ If the whitebox executable is compiled with debug info, you'll get even the corr
  * ```filtr```: the Filter that was used to record the trace containing that sample
  * ```target```: the executable
 
-returns (event number, optional list of details (mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, src_line_info))
+It returns a tuple with the corresponding event number and, if corresponding ```.info``` files are found, a list of details in tuples:  
+(memory mode, item, instruction address, memory address, data size, data, and if compiled with debug info the corresponding source code line)
 
 #### ```run_once```
 
