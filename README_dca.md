@@ -128,14 +128,80 @@ myfilters=[DefaultFilters.stack_w4, DefaultFilters.mem_data_rw4]
 
 ### Tracing
 
+At the moment there are two classes deriving from ```Tracer```: ```TracerPIN``` and ```TracerGrind```, with (almost) the same interface, so you can easily swap a call to one by a call to the other one.
+Both will produce traces according to the filters defined as explained above, in several files with this type of filename: ```trace_<<keyword>>_<<index>>_<<input>>_<<output>>.bin```.
+It's possible to run several traces in parallel and combine all the resulting files to convert them as we will see in the next step.
+
+```TracerPIN``` and ```TracerGrind``` ```__init__``` arguments are:
+  * ```target```: the executable, required
+  * ```processinput```: the helper function to prepare the input, cf above.  
+  Default: a helper writing the input in hex
+  * ```processoutput```: the helper function to extract the output data, cf above.  
+  Default: a helper expecting the output in hex
+  * ```arch```: ARCH.i386 or ARCH.amd64.  
+  Default: ARCH.amd64
+  * ```blocksize```: cipher blocksize.  
+  Default: 16
+  * ```tmptracefile```: name of a temp file.  
+  Default: 'default' will create a temp file based on a timestamp at instanciation, so several instances can run in parallel.
+  * ```addr_range```: instructions address range to trace, expressed in a string, e.g. '0x400000-0x4100000'.  
+  Default: 'default' which means for TracerPIN that only the main executable will be traced and for TracerGrind that only range '0x400000-0x3ffffff' will be traced.
+  * ```stack_range```:  memory address range to be considered as stack, expressed in a string (cf addr_range).  
+  Default: 'default' which means some heuristics will be used depending on the platform and the tracer tool used.
+  * ```filters```: a list of filters as described in the section above.  
+  Default: 'default' which means a set of default filters will be used: ```[DefaultFilters.stack_w1, DefaultFilters.mem_addr1_rw1, DefaultFilters.mem_data_rw1]```
+  * ```tolerate_error```: tolerate that the traced executable returns an error code else than 0?  
+  Default: False
+  * ```shell```: use a Bash wrapper to call the executable? This enables one string options and Bash process substitution.  
+  Default: False
+  * ```debug```: display executable call and full output and don't delete tmp file, to investigate initial setup.  
+  Default: False
+  * ```record_info```: do you want to record an additional trace required by ```sample2event``` (see below)?  
+  Default: True for TracerPIN,False for TracerGrind that doesn't suppport yet this feature.
+
+Once a tracer is instanciated, call ```run``` with the following arguments:
+  * ```n```: int telling how many times the executable should be run and traced.
+  * ```verbose```: be verbose?
+  Default: True
+
+Simplest example:
+```python
+from deadpool_dca import *
+T=TracerPIN('mywhitebox')
+T.run(100)
+```
+
 ### Converting binary traces to formats suitable for CPA tools
+
+Traces are recorded in binary files with a very easy structure as we saw in the previous step. This allows producing traces by other means than using TracePIN or TraceGrind and converting them with the same tools used in this step. The only requirement is to use the same type of filenames ```trace_<<keyword>>_<<index>>_<<input>>_<<output>>.bin```.
 
 #### ```bin2daredevil```
 
+TODO 
+
 #### ```bin2trs```
+
+TODO
 
 ### Misc helpers
 
 #### ```sample2event```
 
-TODO
+```deadpool_dca``` module has a little helper function ```sample2event``` that relies on the ```record_info``` defined above and tries to provide information about a given sample.
+E.g. if your CPA tool finds a strong leakage in the traces at a given sample, use sample2event to know more about this sample.
+If the whitebox executable is compiled with debug info, you'll get even the corresponding source code line. Arguments:
+
+ * ```sample```: int, the sample number you want info about.
+ * ```filtr```: the Filter that was used to record the trace containing that sample
+ * ```target```: the executable
+
+returns (event number, optional list of details (mem_mode, item, ins_addr, mem_addr, mem_size, mem_data, src_line_info))
+
+#### ```run_once```
+
+```Tracer``` classes have a little helper function ```run_once``` if you want to execute one single trace and get one full human readable trace:
+
+```python
+T=TracerPIN('mywhitebox')
+T.run_once(tracefile='fulltrace.txt')
+```
