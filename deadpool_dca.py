@@ -56,7 +56,7 @@ class ARCH:
     amd64 = 1
 
 class Filter:
-    def __init__(self, keyword, modes=[], condition=None, extract=None, extract_fmt=None):
+    def __init__(self, keyword, modes, condition, extract, extract_fmt):
         self.keyword=keyword
         self.modes=modes
         self.condition=condition
