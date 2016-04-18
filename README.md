@@ -5,25 +5,27 @@ By the way, in the comics, the white boxes are Deadpool's crazy alternative inne
 
 Deadpool is a repository of various public white-box cryptographic implementations and their practical attacks.
 
-## Differential Computation Analysis
+# Attacks
 
-The DCA attacks are leveraged by Tracer and Daredevil projects, also available at https://github.com/SideChannelMarvels/,
-as outlined in the paper
+## [Differential Computation Analysis](README_dca.md)
 
-Joppe W. Bos and Charles Hubain and Wil Michiels and Philippe Teuwen:  
-Differential Computation Analysis: Hiding your White-Box Designs is Not Enough  
-Cryptology ePrint Archive, Report 2015/753, IACR, 2015.  
-http://eprint.iacr.org/2015/753.pdf
+## [Differential Fault Analysis](README_dfa.md)
 
-Attacks presented in the paper were performed partly with a proprietary tool, that we replaced by
-an opensource variant (Daredevil) in order to have a completely opensource toolchain.
+# White-box implementations
 
-Deadpool contains a script to help acquiring traces for DCA: ```deadpool_dca.py```.  
-See [deadpool_dca.py documentation here](deadpool_dca.md).
+## [Wyseur 2007](wbs_des_wyseur2007)
 
-## Differential Fault Analysis
+A Linux binary implementing a DES.
 
-The DFA attacks are leveraged by JeanGrey project, also available at https://github.com/SideChannelMarvels/.
+## [Hack.lu 2009 challenge](wbs_aes_hacklu2009)
 
-Deadpool contains a script to help acquiring traces for DFA: ```deadpool_dfa.py```.  
-See [deadpool_dfa.py documentation here](deadpool_dfa.md).
+A Windows binary implementing an AES 128.
+
+## [Karroumi 2010 challenge](wbs_aes_karroumi2010)
+
+A Linux binary implementing an AES 128.
+
+## [SSTIC 2012 challenge](wbs_des_sstic2012)
+
+A Python serialized object implementing a DES.
+
