@@ -148,7 +148,9 @@ class Acquisition:
             self.logfile=open(logfile, 'w')
         def sigint_handler(signal, frame):
             print('\nGot interrupted!')
-            self.finish()
+            self.savetraces()
+            os.remove(self.targetdata)
+            self.logfile.close()
             sys.exit(0)
         def sigusr1_handler(signal, frame):
             self.savetraces()
