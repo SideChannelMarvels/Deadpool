@@ -130,33 +130,33 @@ myfilters=[DefaultFilters.stack_w4, DefaultFilters.mem_data_rw4]
 
 At the moment there are two classes deriving from ```Tracer```: ```TracerPIN``` and ```TracerGrind```, with (almost) the same interface, so you can easily swap a call to one by a call to the other one.
 Both will produce traces according to the filters defined as explained above, in several files with this type of filename: ```trace_<<keyword>>_<<index>>_<<input>>_<<output>>.bin```.
-It's possible to run several traces in parallel and combine all the resulting files to convert them as we will see in the next step.
+It's possible to run several traces in parallel (unless you specify identical ```tmptracefile```, be careful) and combine all the resulting files to convert them as we will see in the next step.
 
 ```TracerPIN``` and ```TracerGrind``` ```__init__``` arguments are:
-  * ```target```: the executable, required
+  * ```target```: (str) the executable, required. Must be in the PATH so prepend './' if needed.
   * ```processinput```: the helper function to prepare the input, cf above.  
   Default: a helper writing the input in hex
   * ```processoutput```: the helper function to extract the output data, cf above.  
   Default: a helper expecting the output in hex
   * ```arch```: ARCH.i386 or ARCH.amd64.  
   Default: ARCH.amd64
-  * ```blocksize```: cipher blocksize.  
+  * ```blocksize```: (int) cipher blocksize.  
   Default: 16
-  * ```tmptracefile```: name of a temp file.  
+  * ```tmptracefile```: (str) name of a temp file.  
   Default: 'default' will create a temp file based on a timestamp at instanciation, so several instances can run in parallel.
-  * ```addr_range```: instructions address range to trace, expressed in a string, e.g. '0x400000-0x4100000'.  
+  * ```addr_range```: (str) instructions address range to trace, expressed in a string, e.g. '0x400000-0x4100000'.  
   Default: 'default' which means for TracerPIN that only the main executable will be traced and for TracerGrind that only range '0x400000-0x3ffffff' will be traced.
-  * ```stack_range```:  memory address range to be considered as stack, expressed in a string (cf addr_range).  
+  * ```stack_range```: (str) memory address range to be considered as stack, expressed in a string (cf addr_range).  
   Default: 'default' which means some heuristics will be used depending on the platform and the tracer tool used.
   * ```filters```: a list of filters as described in the section above.  
   Default: 'default' which means a set of default filters will be used: ```[DefaultFilters.stack_w1, DefaultFilters.mem_addr1_rw1, DefaultFilters.mem_data_rw1]```
-  * ```tolerate_error```: tolerate that the traced executable returns an error code else than 0?  
+  * ```tolerate_error```: (bool) tolerate that the traced executable returns an error code else than 0?  
   Default: False
-  * ```shell```: use a Bash wrapper to call the executable? This enables one string options and Bash process substitution.  
+  * ```shell```: (bool) use a Bash wrapper to call the executable? This enables one string options and Bash process substitution.  
   Default: False
-  * ```debug```: display executable call and full output and don't delete tmp file, to investigate initial setup.  
+  * ```debug```: (bool) display executable call and full output and don't delete tmp file, to investigate initial setup.  
   Default: False
-  * ```record_info```: do you want to record an additional trace required by ```sample2event``` (see below)?  
+  * ```record_info```: (bool) do you want to record an additional trace required by ```sample2event``` (see below)?  
   Default: True for TracerPIN,False for TracerGrind that doesn't suppport yet this feature.
 
 Once a tracer is instanciated, call ```run``` with the following arguments:
@@ -179,10 +179,10 @@ Traces are recorded in binary files with a very easy structure as we saw in the 
 
 ```bin2daredevil``` converts a set of binary trace files into a set of files suitable for Daredevil. Arguments:
 
-  * ```keyword```: keyword of the trace set to use. Instead of a string you can provide directly the corresponding Filter that was used to create that set. But if you produce traces by yourself, no need to create a Filter.
+  * ```keyword```: (str) keyword of the trace set to use. Instead of a string you can provide directly the corresponding Filter that was used to create that set. But if you produce traces by yourself, no need to create a Filter.
   * ```keywords```: alternatively, you can provide a list of keywords, or a list of Filters.  
   Default: (only if ```keyword``` is not defined) the set of default Filters, cf ```filters``` of ```Tracer``` above.
-  * ```delete_bin```: shall we delete binary files while they are converted?
+  * ```delete_bin```: (bool) shall we delete binary files while they are converted?
   Default: True
   * ```config``` or ```configs```: (dict of) configuration, see below.
   Default: some standard configuration suitable for CPA against first round of AES encryption.
@@ -196,10 +196,10 @@ For ```guess``` there is a shortcut: just tell ```input``` or ```output``` depen
 
 Alternatively ```bin2trs``` converts a set of binary trace files into a (set of) tracefile suitable for Riscure Inspector. Arguments:
 
-  * ```keyword```: keyword of the trace set to use. Instead of a string you can provide directly the corresponding Filter that was used to create that set. But if you produce traces by yourself, no need to create a Filter.
+  * ```keyword```: (str) keyword of the trace set to use. Instead of a string you can provide directly the corresponding Filter that was used to create that set. But if you produce traces by yourself, no need to create a Filter.
   * ```keywords```: alternatively, you can provide a list of keywords, or a list of Filters.  
   Default: (only if ```keyword``` is not defined) the set of default Filters, cf ```filters``` of ```Tracer``` above.
-  * ```delete_bin```: shall we delete binary files while they are converted?
+  * ```delete_bin```: (bool) shall we delete binary files while they are converted?
   Default: True
 
 ### Misc helpers
@@ -210,16 +210,23 @@ Alternatively ```bin2trs``` converts a set of binary trace files into a (set of)
 E.g. if your CPA tool finds a strong leakage in the traces at a given sample, use sample2event to know more about this sample.
 If the whitebox executable is compiled with debug info, you'll get even the corresponding source code line. Arguments:
 
- * ```sample```: int, the sample number you want info about.
+ * ```sample```: (int) the sample number you want info about.
  * ```filtr```: the Filter that was used to record the trace containing that sample
- * ```target```: the executable
+ * ```target```: (str) the executable
 
 It returns a tuple with the corresponding event number and, if corresponding ```.info``` files are found, a list of details in tuples:  
 (memory mode, item, instruction address, memory address, data size, data, and if compiled with debug info the corresponding source code line)
 
 #### ```run_once```
 
-```Tracer``` classes have a little helper function ```run_once``` if you want to execute one single trace and get one full human readable trace:
+```Tracer``` classes have a little helper function ```run_once``` if you want to execute one single trace and get one full human readable trace. Arguments:
+
+  * ```iblock```: (int) input block
+  Default: a random block
+  * ```tracefile```: (str) filename to store the trace  
+  Default: a random temp filename
+
+Example:
 
 ```python
 T=TracerPIN('mywhitebox')

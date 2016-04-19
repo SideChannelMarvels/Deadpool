@@ -9,7 +9,9 @@ The DFA attacks are leveraged by two components:
 
 ## ```deadpool_dfa.py```
 
-```deadpool_dfa.py``` is a Python 3 library to help acquiring faulty outputs.
+```deadpool_dfa.py``` is a Python 3 library to help acquiring faulty outputs.  
+The current ```deadpool_dfa``` injects faults statically into a data file or an executable before execution. If there are integrity checks on the data or on the executable it should fail and a dynamic fault injection is required. That could be a future step.  
+The script will take care of abnormal situations due to fault injection such as crashes or (presumably) infinite loops.
 
 ### Inputs and outputs
 
@@ -71,6 +73,73 @@ return int(''.join([x for x in output.split('\n') if len(x)==32][0]), 16)
 
 ### Acquisition
 
-The current ```deadpool_dfa``` injects faults statically into a data file or an executable before execution. If there are integrity checks on the data or on the executable it should fail and a dynamic fault injection is required. That will be a future step.
+```Acquisition``` ```__init__``` arguments are:
+  * ```targetbin```: (str) the executable, required. Must be in the PATH so prepend './' if needed.
+  * ```targetdata```: (str) the file to be faulted, can be the tables file loaded by the white-box executable or the executable itself. It's not supposed to be provided, it'll be copied from ```goldendata```, therefore any existing ```targetdata``` will be destroyed!
+  * ```goldendata```: (str) the original copy of the file to be faulted, ```targetdata``` faulty copies will be made during the attack. Must be different from ```targetdata```!
+  * ```dfa```: DFA module, e.g. phoenixAES from JeanGrey, see below for module requirements
+  * ```iblock```: (int) reference input block to provide to the executable
+  Default: 0x74657374746573747465737474657374
+  * ```processinput```: the helper function to prepare the input from ```iblock```, cf above.  
+  Default: a helper writing the input in hex
+  * ```processoutput```: the helper function to extract the output data, cf above.  
+  Default: a helper expecting the output in hex
+  * ```verbose```: (int) verbosity level  
+  Default: 1
+  * ```maxleaf```: (int) max size of faulty blocks, can be large when attacking raw tables, smaller when attacking serialized tables or executables as a large fault has very little chance to succeed  
+  Default: 256*256
+  * ```minleaf```: (int) min size of faulty blocks in the search phase. Same as above. The smaller, the longer the scan may take.  
+  Default: 64
+  * ```minleafnail```: (int) once an exploitable output is found in the scan phase, reduce the fault up to this size, in order to avoid multiple faults at once. Reduce if DFA tool fails on the recorded traces.  
+  Default: 8
+  * ```addresses```: (tuple) address range within ```goldendata``` where to inject faults; or (str) '/path/to/logfile' to replay address ranges specified in this log file, see below  
+  Default: None => the entire address range of ```goldendata```
+  * ```start_from_left```: (bool) scan should start from left? Else from right. Note that DFA attacks one of the last rounds so it may be faster starting from the right.
+  Default: True
+  * ```depth_first_traversal```: (bool) scan should dig from ```maxleaf``` to ```minleaf``` elements before getting to the next ```maxleaf``` segment? Else try all ```maxxleaf``` segments before going one level down
+  Default: False
+  * ```faults```: (int) once a ```minleafnail``` segment gives a potentially exploitable output, how many faults to try on the same spot (with other random values)?
+  Default: 4
+  * ```minfaultspercol```: (int) potentially exploitable outputs may be sorted in classes, how many faults to record a minima in each class before interrupting the attack? E.g. for AES the minimum is 2. If you don't want to interrupt before end of the scan, set it to ```None```
+  Default: 4
+  * ```timeoutfactor```: (int or float) to detect potentially infinite loops, the script measures the process time under normal conditions and interrupts the faulted process after ```timeoutfactor``` times the normal processing time.
+  Default: 2
+  * ```savetraces_format```: (str) ```'default'``` will save inputs and faulty outputs in a very basic format, suitable for JeanGrey. ```'trs'``` will save them in a format compatible with Riscure Inspector.
+  Default: ```'default'```
+  * ```logfile```: (str) 
+  Default: None
+  * ```tolerate_error```: (bool) 
+  Default: False
+  * ```shell```: (bool) 
+  Default: False
+  * ```debug```: (bool) 
+  Default: False
 
-TODO
+*Note: it might be that some parts of the API are still too specific to AES and will be revised and moved to DFA modules once other ciphers are added...*
+
+The DFA module is supposed to provide the following elements:
+  * ```check((int)output, (int)verbose)```: a function validating corrupted outputs and returning a tuple (FaultStatus, index)
+  * ```blocksize```
+  * ```FaultStatus```: an enumeration of possible status: Crash, Loop, NoFault, MinorFault, MajorFault, WrongFault, GoodEncFault, GoodDecFault
+
+When an attack is running, a logfile records the faults leading to potentially exploitable outputs. This logfile can be provided for a new set of attacks via the ```addresses``` argument to replay an attack at the same addresses.
+
+Default saved traces format is very basic: ```dfa_<<enc/dec>>>_<<begin_timestamp>>-<<end_timestamp>>>_<<number of records>>.txt``` containing on each line the reference input and the output as hex string.
+First record is the one with the correct output, to be used as reference by the DFA tool.
+
+If the attack is running for long and you want to try a DFA attack on intermediate results, send a SIGUSR1 and it will dump an intermediate tracefile.
+You can interrupt the script with a SIGINT (ctrl-C), it will save the current tracefile as well before quitting.
+
+Once a tracer is instanciated, call ```run``` without arguments. It will return True if scan is interrupted because ```minfaultspercol``` condition is fulfilled, else False.
+
+Typical usage:
+
+```python
+import deadpool_dfa
+import phoenixAES
+engine=deadpool_dfa.Acquisition(targetbin='./whitebox', targetdata='whitebox-tables.bin', goldendata='whitebox-tables.bin.gold', dfa=phoenixAES)
+tracefiles=engine.run()
+for tracefile in tracefiles:
+    if phoenixAES.crack(tracefile):
+        break
+```
