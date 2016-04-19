@@ -50,7 +50,8 @@ def processoutput(output, blocksize):
 """
     # DFA is only possible in presence of output so this function is supposed
     # to return an output under normal conditions.
-    # If the fault injection leads to a failure without exploitable output, return None
+    # It will be wrapped by try_processoutput so no need to care about faults
+    # leading to situations without exploitable output.
     return int(output, 16)
 
 def try_processoutput(processoutput):
