@@ -333,12 +333,12 @@ class Acquisition:
                             if status is self.FaultStatus.GoodEncFault:
                                 self.encpairs.append(pair)
                                 self.encstatus[index]+=1
-                                if [x for x in self.encstatus if x < self.minfaultspercol] == []:
+                                if self.minfaultspercol is not None and [x for x in self.encstatus if x < self.minfaultspercol] == []:
                                     return True
                             else:
                                 self.decpairs.append(pair)
                                 self.decstatus[index]+=1
-                                if [x for x in self.decstatus if x < self.minfaultspercol] == []:
+                                if self.minfaultspercol is not None and [x for x in self.decstatus if x < self.minfaultspercol] == []:
                                     return True
                             self.logfile.write(txt+'\n')
                         self.logfile.flush()
