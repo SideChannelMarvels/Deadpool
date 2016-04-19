@@ -250,7 +250,7 @@ class Acquisition:
         if oblock is None:
             return (None, self.FaultStatus.Crash, None)
         else:
-            status, index=self.check(oblock, self.verbose, self.FaultStatus)
+            status, index=self.check(oblock, self.verbose)
         return (oblock, status, index)
 
     def splitrange(self, r, mincut=1):
