@@ -13,3 +13,10 @@ Components
 * `DFA` contains the DFA attack against this challenge.
 
 See the projet wiki for the corresponding tutorial.
+
+Write-ups
+---------
+
+It was not a real challenge, but remember we used the implementation of Dušan Klinec who has shown how to apply BGE against it, so check his work too:
+
+* https://is.muni.cz/th/325219/fi_m/
