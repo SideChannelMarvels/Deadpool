@@ -1,0 +1,6 @@
+#!/bin/bash
+
+gcc -o nosuchcon_2013_whitebox_generator_noenc_nokey nosuchcon_2013_whitebox_generator_noenc_nokey.c
+./nosuchcon_2013_whitebox_generator_noenc_nokey
+gcc -o nosuchcon_2013_whitebox_nsc_break nosuchcon_2013_whitebox_nsc_break.c
+./nosuchcon_2013_whitebox_nsc_break
