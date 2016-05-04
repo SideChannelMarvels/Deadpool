@@ -1,0 +1,13 @@
+#!/bin/bash
+
+gcc -o nosuchcon_2013_whitebox_allenc_generator nosuchcon_2013_whitebox_allenc_generator.c
+gcc -o nosuchcon_2013_whitebox_allenc nosuchcon_2013_whitebox_allenc.c
+./nosuchcon_2013_whitebox_allenc_generator
+
+gcc -o nosuchcon_2013_whitebox_noextenc_generator nosuchcon_2013_whitebox_noextenc_generator.c
+gcc -o nosuchcon_2013_whitebox_noextenc nosuchcon_2013_whitebox_noextenc.c
+./nosuchcon_2013_whitebox_noextenc_generator
+
+gcc -o nosuchcon_2013_whitebox_noenc_generator nosuchcon_2013_whitebox_noenc_generator.c
+gcc -o nosuchcon_2013_whitebox_noenc nosuchcon_2013_whitebox_noenc.c
+./nosuchcon_2013_whitebox_noenc_generator
