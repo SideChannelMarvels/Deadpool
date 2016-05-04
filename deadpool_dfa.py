@@ -57,7 +57,7 @@ def processoutput(output, blocksize):
 def try_processoutput(processoutput):
     def foo(output, blocksize):
         try:
-            return processoutput(output.decode(), blocksize)
+            return processoutput(output, blocksize)
         except:
             return None
     return foo
@@ -107,8 +107,9 @@ class Acquisition:
         if not self.processed_input:
             self.processed_input=[]
         # from output bytes returns oblock as int
-        # If program may crash, make sure processoutput() returns None in such cases
-        self.processoutput = try_processoutput(processoutput)
+        self.processoutput = processoutput
+        # If program may crash, make sure try_processoutput() returns None in such cases
+        self.try_processoutput = try_processoutput(processoutput)
         # Largest (aligned) block to fault
         self.maxleaf=maxleaf
         # Smallest (aligned) block to fault in discovery phase
@@ -159,7 +160,7 @@ class Acquisition:
         self.timeout=10
         # Prepare golden output
         starttime=time.time()
-        oblock,status,index=self.doit(self.goldendata)
+        oblock,status,index=self.doit(self.goldendata, protect=False)
         # Set timeout = N times normal execution time
         self.timeout=(time.time()-starttime)*timeoutfactor
         if oblock is None or status is not self.FaultStatus.NoFault:
@@ -222,7 +223,7 @@ class Acquisition:
                 tracefiles.append(trsfile)
         return tracefiles
 
-    def doit(self, table):
+    def doit(self, table, protect=True):
         open(self.targetdata, 'wb').write(table)
         if self.targetbin==self.targetdata:
             os.chmod(self.targetbin,0o755)
@@ -243,7 +244,10 @@ class Acquisition:
             return (None, self.FaultStatus.Loop, None)
         if self.debug:
             print(output)
-        oblock=self.processoutput(output, self.blocksize)
+        if protect:
+            oblock=self.try_processoutput(output, self.blocksize)
+        else:
+            oblock=self.processoutput(output, self.blocksize)
         if self.debug:
             print(oblock)
             sys.exit(0)
