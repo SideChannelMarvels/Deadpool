@@ -13,7 +13,7 @@ So we've to use the long path: reverse-engineering then applying algebraic attac
 This directory contains the reverse-engineering part.
 The algebraic attack proposed in ALG only requires some of the tables to be extracted but we'll go up to getting a fully working white-box so you may try other attacks on that one.
 
-Once the challenge was over, Eloi Vanderbéken published his white-box generator, which is much cleaner to work with than the original challenge.
+Once the challenge was over, Eloi Vanderbéken [published](https://twitter.com/elvanderb/status/341542457172951040) his white-box generator, which is much cleaner to work with than the original challenge.
 But it contains only the generator, neither the actual key used in the challenge nor the generated tables.
 On the other side, Axel Souchet went up to isolating the white-box rounds to brute-force each round input till finding a suitable white-box input that produces the desired output.
 
@@ -26,8 +26,9 @@ To do so, we reuse [Axel Souchet's write-up](http://0vercl0k.tuxfamily.org/bl0g/
 You may follow his write-up till you obtain [wbaes128_solve.cpp](https://github.com/0vercl0k/stuffz/blob/master/NoSuchCon2013/wbaes128_solve/wbaes128_solve.cpp)
 and [wbaes128.h](https://github.com/0vercl0k/stuffz/blob/master/NoSuchCon2013/wbaes128/wbaes128.h) which are reproduced in this repository for simplicity.
 
-We perform some operations on those files to get tables suitable for [Eloi's generator](http://pastebin.com/MvXpGZts) which is reproduced in this repository for simplicity.
+We perform some operations on those files to get tables suitable for [Eloi's generator](http://pastebin.com/MvXpGZts).  
 Those steps are detailed in http://wiki.yobi.be/wiki/NSC_Writeups#Epilogue  
+```nosuchcon_2013_whitebox_debug.c``` and ```result/nosuchcon_2013_whitebox.c``` are derived from that generator.
 At this point we'll get a clean version of the white-box, as if it was produced by Eloi's generator.
 A script is automating the required steps:
 
