@@ -224,6 +224,9 @@ class Acquisition:
         return tracefiles
 
     def doit(self, table, protect=True):
+        # To avoid seldom busy file errors:
+        if os.path.isfile(self.targetdata):
+            os.remove(self.targetdata)
         open(self.targetdata, 'wb').write(table)
         if self.targetbin==self.targetdata:
             os.chmod(self.targetbin,0o755)
