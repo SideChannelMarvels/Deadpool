@@ -269,8 +269,8 @@ class Acquisition:
         dq.extend(self.splitrange((x+left,y), mincut))
         return dq
 
-    def inject(self, r, fault):
-        return self.goldendata[:r[0]]+bytes([x^fault for x in self.goldendata[r[0]:r[1]]])+self.goldendata[r[1]:]
+    def inject(self, r, faultfct):
+        return self.goldendata[:r[0]]+bytes([faultfct(x) for x in self.goldendata[r[0]:r[1]]])+self.goldendata[r[1]:]
 
     def dig(self, tree=None, faults=None, level=0, candidates=[]):
         if tree is None:
@@ -283,7 +283,7 @@ class Acquisition:
             if type(faults) is list:
                 fault=faults[0]
             else:
-                fault=random.randint(1,255)
+                fault=('xor', lambda x: x ^ random.randint(1,255))
             if self.start_from_left:
                 r=tree.popleft()
                 if not self.depth_first_traversal:
@@ -296,9 +296,9 @@ class Acquisition:
                     if breadth_first_level_address is not None and r[1] > breadth_first_level_address:
                         level+=1
                     breadth_first_level_address = r[1]
-            table=self.inject(r, fault)
+            table=self.inject(r, fault[1])
             oblock,status,index=self.doit(table)
-            log='Lvl %03i [0x%08X-0x%08X[ ^0x%02X %0*X ->' % (level, r[0], r[1], fault, 2*self.blocksize, self.iblock)
+            log='Lvl %03i [0x%08X-0x%08X[ %s 0x%02X %0*X ->' % (level, r[0], r[1], fault[0], fault[1](0), 2*self.blocksize, self.iblock)
             if oblock is not None:
                 log+=' %0*X' % (2*self.blocksize, oblock)
             log+=' '+status.name
