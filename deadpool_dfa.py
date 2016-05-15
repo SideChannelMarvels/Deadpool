@@ -316,6 +316,10 @@ class Acquisition:
             if status in [self.FaultStatus.NoFault, self.FaultStatus.MinorFault]:
                 continue
             elif status in [self.FaultStatus.GoodEncFault, self.FaultStatus.GoodDecFault]:
+                if status is self.FaultStatus.GoodEncFault and self.minfaultspercol is not None and self.encstatus[index] >= self.minfaultspercol:
+                    continue
+                if status is self.FaultStatus.GoodDecFault and self.minfaultspercol is not None and self.decstatus[index] >= self.minfaultspercol:
+                    continue
                 if r[1]>r[0]+self.minleafnail:
                     # Nailing phase: always depth-first is ok
                     if self.verbose>2:
