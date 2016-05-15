@@ -243,7 +243,11 @@ class Acquisition:
         except OSError:
             return (None, self.FaultStatus.Crash, None)
         except subprocess.TimeoutExpired:
-            proc.kill()
+            proc.terminate()
+            try:
+                proc.communicate(timeout=self.timeout)
+            except subprocess.TimeoutExpired:
+                proc.kill()
             return (None, self.FaultStatus.Loop, None)
         if self.debug:
             print(output)
