@@ -13,7 +13,7 @@ Deadpool is a repository of various public white-box cryptographic implementatio
 
 ## White-box implementations
 
-### [Wyseur 2007](wbs_des_wyseur2007)
+### [Wyseur 2007 challenge](wbs_des_wyseur2007)
 
 A Linux binary implementing a DES.
 
@@ -29,3 +29,14 @@ A Linux binary implementing an AES 128.
 
 A Python serialized object implementing a DES.
 
+### [NoSuchCon 2013 challenge](wbs_aes_nsc2013)
+
+A Windows binary implementing an AES 128 with uncompensated external encodings.
+
+### [NoSuchCon 2013 variants](wbs_aes_nsc2013_variants)
+
+Variants of the NoSuchCon 2013 challenge, using the same white-box generator but compiled for Linux, without obfuscation and with compensated external encodings.
+
+### [PlaidCTF 2013 challenge](wbs_aes_plaidctf2013)
+
+A Linux binary implementing an AES 128.
