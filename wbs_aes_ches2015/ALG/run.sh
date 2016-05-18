@@ -1,0 +1,6 @@
+#!/bin/bash
+
+gcc -o ches_2015_whitebox_generator_noenc_nokey ches_2015_whitebox_generator_noenc_nokey.c
+./ches_2015_whitebox_generator_noenc_nokey
+gcc -o ches_2015_whitebox_rom_break ches_2015_whitebox_rom_break.c
+./ches_2015_whitebox_rom_break

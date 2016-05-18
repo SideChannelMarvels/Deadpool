@@ -40,3 +40,7 @@ Variants of the NoSuchCon 2013 challenge, using the same white-box generator but
 ### [PlaidCTF 2013 challenge](wbs_aes_plaidctf2013)
 
 A Linux binary implementing an AES 128.
+
+### [CHES 2015 challenge](wbs_aes_ches2015)
+
+A GameBoy ROM implementing an AES 128.
