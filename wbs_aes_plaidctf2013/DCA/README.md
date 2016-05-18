@@ -20,7 +20,7 @@ The attack starts by patching ```drmless``` to always return the decrypted data 
 
 This is not strictly needed but it helps getting the output to try attacking the last round as well.
 
-So far we couldn't break this challenge by smple DCA, probably due to a large (8-bit) internal encoding masking the S-Boxes.
+So far we couldn't break this challenge by simple DCA, probably due to a large (8-bit) internal encoding masking the S-Boxes.
 See DFA for a successful attack.
 
 What we tried:

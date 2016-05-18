@@ -10,9 +10,7 @@ Components
 * `target` contains the original challenge and instructions how to use it.
 * `DCA` contains the DCA attack against this challenge, unsuccessful so far.
 * `DFA` contains the DFA attack against this challenge.
-* `DFA` contains the DFA attack against this challenge, another variant.
-
-See the projet wiki for the corresponding tutorial.
+* `DFA2` contains the DFA attack against this challenge, another variant.
 
 Write-ups
 ---------
