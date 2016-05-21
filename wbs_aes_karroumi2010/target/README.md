@@ -1,20 +1,19 @@
 Compilation
 -----------
 
+On a Debian testing/unstable:
+
 ```bash
 git clone https://github.com/ph4r05/Whitebox-crypto-AES.git
 apt-get install libntl-dev libboost-iostreams1.58-dev libboost-program-options1.58-dev libboost-random1.58-dev libboost-serialization1.58-dev
 cd Whitebox-crypto-AES
-cmake .
-make
+# git checkout bc52b32
+./build-release.sh
 ```
 
-You'll find here the result of the compilation of a slightly patched version to re-introduce the optimization flag in CMakeLists.txt, from commit b59be34f:
+You'll find here the result of the ```Release``` compilation.
 
-```diff
--set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -std=c++0x")
-```
+Because current Debian stable is still with Boost 1.55, you can find also a version compiled with Boost 1.55.
 
 Usage
 -----
@@ -32,6 +31,19 @@ Using the white-box:
 
 ```bash
 ./main --load-tables tables_karroumi_noextenc.tbl --input-files <(echo 6bc1bee22e409f96e93d7e117393172a|xxd -r -p) --out-file >(xxd -p)
+3ad77bb40d7a3660a89ecaf32466ef97
+```
+
+Variant with external encodings:
+
+```bash
+./main --create-table tables_karroumi_extenc.tbl --extEnc=1
+```
+
+Using the white-box:
+
+```bash
+./main --load-tables tables_karroumi_extenc.tbl --extEnc=1 --input-files <(echo 6bc1bee22e409f96e93d7e117393172a|xxd -r -p) --out-file >(xxd -p)
 3ad77bb40d7a3660a89ecaf32466ef97
 ```
 

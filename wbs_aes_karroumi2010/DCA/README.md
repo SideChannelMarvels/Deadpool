@@ -4,7 +4,7 @@ Usage
 Generating a white-box:
 
 ```bash
-../target/main --create-table tables_karroumi_noextenc.bin
+../target/main --create-table tables_karroumi_extenc.tbl --extEnc=1
 ```
 
 Using Tracer to acquire execution traces, here recording the lowest byte of each address from which data is being read:
@@ -24,6 +24,6 @@ By default the script is using TracerPIN but if you want you can change it to us
 Executing the differential analysis on the converted traces:
 
 ```bash
-daredevil -c mem_addr1_rw1_2000_17096.attack_sbox.config
-daredevil -c mem_addr1_rw1_2000_17096.attack_multinv.config
+daredevil -c mem_addr1_rw1_2000_17352.attack_sbox.config
+daredevil -c mem_addr1_rw1_2000_17352.attack_multinv.config
 ```
