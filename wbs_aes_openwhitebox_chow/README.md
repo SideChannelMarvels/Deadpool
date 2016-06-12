@@ -18,4 +18,4 @@ Write-ups
 
 It was not a real challenge, but the OpenWhiteBox project has a cryptanalysis module for Chow:
 
-* https://github.com/OpenWhiteBox/AES/cryptanalysis
+* https://github.com/OpenWhiteBox/AES/tree/master/cryptanalysis/chow
