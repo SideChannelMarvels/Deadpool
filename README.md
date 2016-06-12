@@ -52,3 +52,7 @@ An implementation of Chow written in Go, implementing an AES 128.
 ### [OpenWhiteBox AES Xiao-Lai](wbs_aes_openwhitebox_xiaolai)
 
 An implementation of Xiao-Lai written in Go, implementing an AES 128.
+
+### [CHES 2016 challenge](wbs_aes_ches2016)
+
+A Linux binary (and source) implementing an AES 128.
