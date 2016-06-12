@@ -248,6 +248,8 @@ class Acquisition:
                 proc.communicate(timeout=self.timeout)
             except subprocess.TimeoutExpired:
                 proc.kill()
+            except:
+                pass
             return (None, self.FaultStatus.Loop, None)
         if self.debug:
             print(output)
