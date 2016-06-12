@@ -44,3 +44,7 @@ A Linux binary implementing an AES 128.
 ### [CHES 2015 challenge](wbs_aes_ches2015)
 
 A GameBoy ROM implementing an AES 128.
+
+### [OpenWhiteBox AES Chow](wbs_aes_openwhitebox_chow)
+
+An implementation of Chow written in Go, implementing an AES 128.
