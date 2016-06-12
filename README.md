@@ -48,3 +48,7 @@ A GameBoy ROM implementing an AES 128.
 ### [OpenWhiteBox AES Chow](wbs_aes_openwhitebox_chow)
 
 An implementation of Chow written in Go, implementing an AES 128.
+
+### [OpenWhiteBox AES Xiao-Lai](wbs_aes_openwhitebox_xiaolai)
+
+An implementation of Xiao-Lai written in Go, implementing an AES 128.
