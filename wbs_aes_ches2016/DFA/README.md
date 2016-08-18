@@ -31,3 +31,10 @@ Idx Name          Size      VMA               LMA               File off  Algn
 ```
 
 Another option would be to inject faults directly in the source code as it's available, but it's kind of flattened and takes time to get compiled so all in all that approach would require more time to find the sweet spot where to inject faults.
+
+Result is the last round key, so to roll back key scheduling up to initial AES key, one can e.g. use ```aes_keyschedule``` from Daredevil project.
+
+```bash
+Daredevil/utils/aes_keyschedule 9FC592CC67D77BF02F42748C3E171995 10
+K00: DEC1A551F1EDDEC0DE4B1DAE5C0DE511
+```
