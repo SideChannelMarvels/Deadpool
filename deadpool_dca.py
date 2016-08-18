@@ -162,11 +162,13 @@ def bin2daredevil(keyword=None, keywords=None, delete_bin=True, config=None, con
             if 'top' not in config:
                 config['top']='20'
             if 'comment_correct_key' not in config:
-                if  'correct_key' in config:
+                if 'correct_key' in config:
                     config['comment_correct_key']=''
                 else:
                     config['comment_correct_key']='#'
-                    config['correct_key']='000102030405060708090a0b0c0d0e0f'
+                    config['correct_key']='0x000102030405060708090a0b0c0d0e0f'
+            if config['correct_key'][:2] != "0x":
+                config['correct_key'] = "0x" + config['correct_key']
             if configname:
                 configname+='.'
             content="""
