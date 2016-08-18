@@ -7,8 +7,9 @@ Components
 ----------
 
 * `target` contains the original challenge and instructions how to compile it and how to use it.
+* `DCA` contains the DCA attack against this challenge.
+* `DFA` contains the DFA attack against this challenge.
 
 write-ups
 ---------
 
-The challenge is still ongoing, so... :)
