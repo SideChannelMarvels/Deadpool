@@ -13,3 +13,4 @@ Components
 write-ups
 ---------
 
+* https://eprint.iacr.org/2016/807
