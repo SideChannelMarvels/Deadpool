@@ -14,7 +14,7 @@ def processoutput(output, blocksize):
 #engine=deadpool_dfa.Acquisition(targetbin='./encryptECB', targetdata='key.txt', goldendata='key.txt.gold',
 #        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, shell=True, minleaf=1, minleafnail=1, minfaultspercol=150, verbose=2)
 # Because of many false positives, we had to extend minfaultspercol to capture more traces
-# But looking at the resulting *.log we see some distinct address ranges producing faults with the right pattern:
+# But looking at the resulting *.log (cut -c 10-30 *.log |sort|uniq) we see some distinct address ranges producing faults with the right pattern:
 # 0x3f200-0x43a00
 # 0x5b000-0x5df00
 # 0x7a100-0x7d000
