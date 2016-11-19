@@ -80,11 +80,17 @@ class Acquisition:
                 savetraces_format='default',
                 logfile=None,
                 tolerate_error=False,
+                lastroundkey=None,
+                encrypt=None,
+                outputbeforelastround=False,
                 shell=False,
                 debug=False):
         self.debug=debug
         self.verbose=verbose
         self.tolerate_error=tolerate_error
+        self.lastroundkey=int(lastroundkey, 16) if type(lastroundkey) is str else lastroundkey
+        self.outputbeforelastround=outputbeforelastround
+        self.encrypt=encrypt
         self.shell=shell
         if self.verbose>1:
             print("Initializing...")
@@ -166,7 +172,7 @@ class Acquisition:
         if oblock is None or status is not self.FaultStatus.NoFault:
             raise AssertionError('Error, could not obtain golden output, check your setup!')
         # Register ref output
-        self.check(oblock, self.verbose)
+        self.check(oblock, self.lastroundkey, self.encrypt, self.verbose)
         self.encpairs=[(self.iblock, oblock)]
         self.decpairs=[(self.iblock, oblock)]
         self.encstatus=[0,0,0,0]
@@ -263,7 +269,8 @@ class Acquisition:
         if oblock is None:
             return (None, self.FaultStatus.Crash, None)
         else:
-            status, index=self.check(oblock, self.verbose)
+            status, index, oblocktmp=self.check(oblock, self.lastroundkey, self.encrypt, self.verbose)
+            oblock = oblocktmp if self.outputbeforelastround else oblock
         return (oblock, status, index)
 
     def splitrange(self, r, mincut=1):
