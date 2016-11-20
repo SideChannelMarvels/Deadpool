@@ -171,8 +171,6 @@ class Acquisition:
         self.timeout=(time.time()-starttime)*timeoutfactor
         if oblock is None or status is not self.FaultStatus.NoFault:
             raise AssertionError('Error, could not obtain golden output, check your setup!')
-        # Register ref output
-        self.check(oblock, self.lastroundkey, self.encrypt, self.verbose)
         self.encpairs=[(self.iblock, oblock)]
         self.decpairs=[(self.iblock, oblock)]
         self.encstatus=[0,0,0,0]
