@@ -80,16 +80,16 @@ class Acquisition:
                 savetraces_format='default',
                 logfile=None,
                 tolerate_error=False,
-                lastroundkey=None,
+                lastroundkeys=[],
                 encrypt=None,
-                outputbeforelastround=False,
+                outputbeforelastrounds=False,
                 shell=False,
                 debug=False):
         self.debug=debug
         self.verbose=verbose
         self.tolerate_error=tolerate_error
-        self.lastroundkey=int(lastroundkey, 16) if type(lastroundkey) is str else lastroundkey
-        self.outputbeforelastround=outputbeforelastround
+        self.lastroundkeys=[int(x, 16) if type(x) is str else x for x in lastroundkeys]
+        self.outputbeforelastrounds=outputbeforelastrounds
         self.encrypt=encrypt
         self.shell=shell
         if self.verbose>1:
@@ -267,8 +267,8 @@ class Acquisition:
         if oblock is None:
             return (None, self.FaultStatus.Crash, None)
         else:
-            status, index, oblocktmp=self.check(oblock, self.lastroundkey, self.encrypt, self.verbose)
-            oblock = oblocktmp if self.outputbeforelastround else oblock
+            status, index, oblocktmp=self.check(oblock, self.lastroundkeys, self.encrypt, self.verbose)
+            oblock = oblocktmp if self.outputbeforelastrounds else oblock
         return (oblock, status, index)
 
     def splitrange(self, r, mincut=1):
