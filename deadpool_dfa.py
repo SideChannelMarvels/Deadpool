@@ -166,7 +166,7 @@ class Acquisition:
         self.timeout=10
         # Prepare golden output
         starttime=time.time()
-        oblock,status,index=self.doit(self.goldendata, protect=False)
+        oblock,status,index=self.doit(self.goldendata, protect=False, init=True)
         # Set timeout = N times normal execution time
         self.timeout=(time.time()-starttime)*timeoutfactor
         if oblock is None or status is not self.FaultStatus.NoFault:
@@ -227,7 +227,7 @@ class Acquisition:
                 tracefiles.append(trsfile)
         return tracefiles
 
-    def doit(self, table, protect=True):
+    def doit(self, table, protect=True, init=False):
         # To avoid seldom busy file errors:
         if os.path.isfile(self.targetdata):
             os.remove(self.targetdata)
@@ -267,7 +267,7 @@ class Acquisition:
         if oblock is None:
             return (None, self.FaultStatus.Crash, None)
         else:
-            status, index, oblocktmp=self.check(oblock, self.lastroundkeys, self.encrypt, self.verbose)
+            status, index, oblocktmp=self.check(oblock, self.lastroundkeys, self.encrypt, self.verbose, init)
             oblock = oblocktmp if self.outputbeforelastrounds else oblock
         return (oblock, status, index)
 
