@@ -9,7 +9,7 @@ def processoutput(output, blocksize):
 
 engine=deadpool_dfa.Acquisition(targetbin='./nosuchcon_2013_whitebox_allenc', targetdata='wbt_allenc', goldendata='wbt_allenc.gold',
         dfa=phoenixAES, processoutput=processoutput, verbose=2)
-tracefiles=engine.run()
-for tracefile in tracefiles:
+tracefiles_sets=engine.run()
+for tracefile in tracefiles_sets[0]:
     if phoenixAES.crack(tracefile):
         break

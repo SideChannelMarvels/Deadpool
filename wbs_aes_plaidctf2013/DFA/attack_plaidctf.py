@@ -22,7 +22,7 @@ if not os.path.isfile('drmless.gold'):
 
 engine=deadpool_dfa.Acquisition(targetbin='./drmless', targetdata='./drmless', goldendata='drmless.gold',
         dfa=phoenixAES, processinput=processinput, processoutput=processoutput, maxleaf=2048, faults=[('nop', lambda x: 0x90)], verbose=2)
-tracefiles=engine.run()
-for trace in tracefiles:
+tracefiles_sets=engine.run()
+for trace in tracefiles_sets[1]:
     if phoenixAES.crack(trace, encrypt=False):
         break

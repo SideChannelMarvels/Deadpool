@@ -184,7 +184,7 @@ class Acquisition:
     def savetraces(self):
         if len(self.encpairs) <= 1 and len(self.decpairs) <= 1:
             print('No trace to save, sorry')
-            return []
+            return ([], [])
         if self.savetraces_format=='default':
             return self.savedefault()
         elif self.savetraces_format == 'trs':
@@ -193,7 +193,7 @@ class Acquisition:
             print('Error: unknown format: '+ self.savetraces_format)
 
     def savedefault(self):
-        tracefiles=[]
+        tracefiles=([], [])
         for goodpairs, mode in [(self.encpairs, "enc"), (self.decpairs, "dec")]:
             if len(goodpairs) > 1:
                 tracefile='dfa_%s_%s-%s_%i.txt' % (mode, self.inittimestamp, datetime.datetime.now().strftime('%H%M%S'), len(goodpairs))
@@ -201,11 +201,11 @@ class Acquisition:
                 with open(tracefile, 'wb') as f:
                     for (iblock, oblock) in goodpairs:
                         f.write(('%0*X %0*X\n' % (2*self.blocksize, iblock, 2*self.blocksize, oblock)).encode('utf8'))
-                tracefiles.append(tracefile)
+                tracefiles[mode=="dec"].append(tracefile)
         return tracefiles
 
     def savetrs(self):
-        tracefiles=[]
+        tracefiles=([], [])
         for goodpairs, mode in [(self.encpairs, "enc"), (self.decpairs, "dec")]:
             if len(goodpairs) > 1:
                 trsfile='trs_%s_%s-%s_%i.trs' % (mode, self.inittimestamp, datetime.datetime.now().strftime('%H%M%S'), len(goodpairs))
@@ -224,7 +224,7 @@ class Acquisition:
                     for (iblock, oblock) in goodpairs:
                         # crypto data
                         trs.write(iblock.to_bytes(self.blocksize,'big')+oblock.to_bytes(self.blocksize,'big'))
-                tracefiles.append(trsfile)
+                tracefiles[mode=="dec"].append(trsfile)
         return tracefiles
 
     def doit(self, table, protect=True, init=False):

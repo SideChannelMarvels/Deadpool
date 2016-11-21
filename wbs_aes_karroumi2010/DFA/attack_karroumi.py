@@ -12,7 +12,7 @@ def processoutput(output, blocksize):
 
 engine=deadpool_dfa.Acquisition(targetbin='./main', targetdata='tables_karroumi_extenc.tbl', goldendata='tables_karroumi_extenc.tbl.gold', maxleaf=64, minleaf=4, minleafnail=1, addresses=(0x57000, 0x5A000),
         dfa=phoenixAES, processinput=processinput, processoutput=processoutput, shell=True, verbose=2)
-tracefiles=engine.run()
-for tracefile in tracefiles:
+tracefiles_sets=engine.run()
+for tracefile in tracefiles_sets[0]:
     if phoenixAES.crack(tracefile):
         break
