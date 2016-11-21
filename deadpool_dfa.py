@@ -101,6 +101,7 @@ class Acquisition:
         # Gold reference, must be different from targetdata
         self.goldendata=open(goldendata, 'rb').read()
         # Check function, to validate corrupted outputs
+        self.rewind = dfa.rewind
         self.check = dfa.check
         # Block size in bytes AES:16, DES:8
         self.blocksize=dfa.blocksize
@@ -267,7 +268,8 @@ class Acquisition:
         if oblock is None:
             return (None, self.FaultStatus.Crash, None)
         else:
-            status, index, oblocktmp=self.check(oblock, self.lastroundkeys, self.encrypt, self.verbose, init)
+            oblocktmp = self.rewind(oblock, self.lastroundkeys, self.encrypt)
+            status, index=self.check(oblocktmp, self.encrypt, self.verbose, init)
             oblock = oblocktmp if self.outputbeforelastrounds else oblock
         return (oblock, status, index)
 
