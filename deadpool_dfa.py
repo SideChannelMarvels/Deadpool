@@ -184,7 +184,7 @@ class Acquisition:
     def savetraces(self):
         if len(self.encpairs) <= 1 and len(self.decpairs) <= 1:
             print('No trace to save, sorry')
-            return
+            return []
         if self.savetraces_format=='default':
             return self.savedefault()
         elif self.savetraces_format == 'trs':
