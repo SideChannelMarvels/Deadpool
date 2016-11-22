@@ -403,3 +403,103 @@ class Acquisition:
         os.remove(self.targetdata)
         self.logfile.close()
         return tracefiles
+
+    def digoninput(self, tree=None, faults=None, candidates=[], mimiclastround=True):
+        if tree is None:
+            tree=list(range(16))
+        if faults is None:
+            faults=self.faults
+        if type(faults) is list:
+            fault=faults[0]
+        else:
+            fault=('xor', lambda x: x ^ random.randint(1,255))
+        table=self.goldendata
+
+        while len(tree)>0:
+            i = tree.pop(0)
+            ib=[(self.iblock>>(i<<3) & 0xff) for i in range(self.blocksize)][::-1]
+            ib[i]=fault[1](ib[i])
+            iblock=int(''.join(["%02X" % x for x in ib]), 16)
+            if mimiclastround:
+                iblock=self.dfa.MC(iblock)
+            processed_input=self.processinput(iblock, self.blocksize)
+            oblock,status,index=self.doit(table, processed_input)
+            log='Lvl in  [%02i] %s 0x%02X %0*X ->' % (i, fault[0], fault[1](0), 2*self.blocksize, iblock)
+            if oblock is not None:
+                log+=' %0*X' % (2*self.blocksize, oblock)
+            log+=' '+status.name
+            if status in [self.FaultStatus.GoodEncFault, self.FaultStatus.GoodDecFault]:
+                log+=' Column:'+str(index)
+            if self.verbose>1:
+                print(log)
+            if status in [self.FaultStatus.NoFault, self.FaultStatus.MinorFault]:
+                continue
+            elif status in [self.FaultStatus.GoodEncFault, self.FaultStatus.GoodDecFault]:
+                if status is self.FaultStatus.GoodEncFault and self.minfaultspercol is not None and self.encstatus[index] >= self.minfaultspercol:
+                    continue
+                if status is self.FaultStatus.GoodDecFault and self.minfaultspercol is not None and self.decstatus[index] >= self.minfaultspercol:
+                    continue
+                mycandidates=candidates+[(log, (iblock, oblock))]
+                if type(faults) is list and len(faults)>1:
+                    if self.digoninput([i], faults[1:], mycandidates):
+                        return True
+                    continue
+                elif type(faults) is int and faults>1:
+                    if self.digoninput([i], faults-1, mycandidates):
+                        return True
+                    continue
+                else:
+                    while len(mycandidates)>0:
+                        txt,pair = mycandidates.pop(0)
+                        if self.verbose>0:
+                            print(txt+' Logged')
+                        if status is self.FaultStatus.GoodEncFault:
+                            self.encpairs.append(pair)
+                            self.encstatus[index]+=1
+                            if self.minfaultspercol is not None and [x for x in self.encstatus if x < self.minfaultspercol] == []:
+                                return True
+                        else:
+                            self.decpairs.append(pair)
+                            self.decstatus[index]+=1
+                            if self.minfaultspercol is not None and [x for x in self.decstatus if x < self.minfaultspercol] == []:
+                                return True
+                        self.logfile.write(txt+'\n')
+                    self.logfile.flush()
+                    continue
+            elif status in [self.FaultStatus.MajorFault, self.FaultStatus.Loop, self.FaultStatus.Crash]:
+                continue
+        return False
+
+    def runoninput(self, lastroundkeys=[], encrypt=None, mimiclastround=True):
+        if encrypt is not None and self.encrypt is not None:
+            assert self.encrypt==encrypt
+        if encrypt is not None and self.encrypt is None:
+            self.encrypt=encrypt
+        self.lastroundkeys=lastroundkeys
+        if self.logfilename is None:
+            self.logfile=open('%s_%s.log' % (self.targetbin, self.inittimestamp), 'w')
+        else:
+            self.logfile=open(self.logfilename, 'w')
+        # Prepare golden output
+        starttime=time.time()
+        if mimiclastround:
+            processed_input=self.processinput(self.dfa.MC(self.iblock), self.blocksize)
+            oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
+            self.encpairs=[(self.dfa.MC(self.iblock), oblock)]
+            self.decpairs=[(self.dfa.MC(self.iblock), oblock)]
+        else:
+            processed_input=self.processinput(self.iblock, self.blocksize)
+            oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
+            self.encpairs=[(self.iblock, oblock)]
+            self.decpairs=[(self.iblock, oblock)]
+        # Set timeout = N times normal execution time
+        self.timeout=(time.time()-starttime)*self.timeoutfactor
+        if oblock is None or status is not self.FaultStatus.NoFault:
+            raise AssertionError('Error, could not obtain golden output, check your setup!')
+        self.encstatus=[0,0,0,0]
+        self.decstatus=[0,0,0,0]
+        self.digoninput(mimiclastround=mimiclastround)
+        tracefiles=self.savetraces()
+        os.remove(self.targetdata)
+        self.logfile.close()
+        return tracefiles

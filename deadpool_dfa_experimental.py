@@ -24,19 +24,19 @@ def AesGetAllRoundKeys(targetbin, targetdata, goldendata,
         shell=False,
         debug=False):
 
+    engine=deadpool_dfa.Acquisition(
+        targetbin, targetdata, goldendata, phoenixAES,
+        iblock, processinput, processoutput,
+        verbose, maxleaf, minleaf, minleafnail,
+        addresses, start_from_left, depth_first_traversal,
+        faults, minfaultspercol, timeoutfactor,
+        savetraces_format, logfile,
+        tolerate_error, encrypt,
+        outputbeforelastrounds, shell, debug)
+
+
     foundkey=True
     while foundkey:
-        # TODO why repeating this? what do we miss in run()??
-        # test on kryptologik, fail after 4 rounds
-        engine=deadpool_dfa.Acquisition(
-            targetbin, targetdata, goldendata, phoenixAES,
-            iblock, processinput, processoutput,
-            verbose, maxleaf, minleaf, minleafnail,
-            addresses, start_from_left, depth_first_traversal,
-            faults, minfaultspercol, timeoutfactor,
-            savetraces_format, logfile,
-            tolerate_error, encrypt,
-            outputbeforelastrounds, shell, debug)
         foundkey=False
         tracefiles_sets=engine.run(lastroundkeys, encrypt)
         if encrypt is not None:
@@ -58,4 +58,29 @@ def AesGetAllRoundKeys(targetbin, targetdata, goldendata,
                 lastroundkeys.append(k)
                 open('lastroundkeys.log', 'w').write('\n'.join(lastroundkeys))
                 break
+    # Fuzzing directly the input:
+    # This was only tested on encryption!
+    foundkey=False
+    tracefiles_sets=engine.runoninput(lastroundkeys)
+    if encrypt is not None:
+        tracefiles = tracefiles_sets[not encrypt]
+    else:
+        assert len(tracefiles_sets[0])>0 or len(tracefiles_sets[1])>0
+        if len(tracefiles_sets[0])>0:
+            encrypt=True
+            tracefiles=tracefiles_sets[0]
+        elif len(tracefiles_sets[1])>0:
+            encrypt=False
+            tracefiles=tracefiles_sets[1]
+        else:
+            tracefiles=[]
+    for tracefile in tracefiles:
+        k=phoenixAES.crack(tracefile, lastroundkeys, encrypt, outputbeforelastrounds and len(lastroundkeys)>0, verbose)
+        if k:
+            foundkey=True
+            lastroundkeys.append(k)
+            open('lastroundkeys.log', 'w').write('\n'.join(lastroundkeys))
+            break
+    if foundkey:
+        print('TODO reveal first key')
     return lastroundkeys
