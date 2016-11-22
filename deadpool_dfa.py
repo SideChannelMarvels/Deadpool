@@ -80,7 +80,6 @@ class Acquisition:
                 savetraces_format='default',
                 logfile=None,
                 tolerate_error=False,
-                lastroundkeys=[],
                 encrypt=None,
                 outputbeforelastrounds=False,
                 shell=False,
@@ -88,7 +87,6 @@ class Acquisition:
         self.debug=debug
         self.verbose=verbose
         self.tolerate_error=tolerate_error
-        self.lastroundkeys=[int(x, 16) if type(x) is str else x for x in lastroundkeys]
         self.outputbeforelastrounds=outputbeforelastrounds
         self.encrypt=encrypt
         self.shell=shell
@@ -101,8 +99,7 @@ class Acquisition:
         # Gold reference, must be different from targetdata
         self.goldendata=open(goldendata, 'rb').read()
         # Check function, to validate corrupted outputs
-        self.rewind = dfa.rewind
-        self.check = dfa.check
+        self.dfa = dfa
         # Block size in bytes AES:16, DES:8
         self.blocksize=dfa.blocksize
         # Enum from dfa class
@@ -110,9 +107,7 @@ class Acquisition:
         # Ref iblock
         self.iblock=iblock
         # prepares iblock as list of strings based on its int representation
-        self.processed_input=processinput(self.iblock, self.blocksize)
-        if not self.processed_input:
-            self.processed_input=[]
+        self.processinput = processinput
         # from output bytes returns oblock as int
         self.processoutput = processoutput
         # If program may crash, make sure try_processoutput() returns None in such cases
@@ -127,15 +122,7 @@ class Acquisition:
         # None               = full range
         # (0x1000,0x5000)    = target only specified address range
         # '/path/to/logfile' = replays address ranges specified in this log file
-        if addresses is None:
-            self.tabletree=deque(self.splitrange((0, len(self.goldendata))))
-        elif type(addresses) is str:
-            self.tabletree=deque()
-            with open(addresses, 'r') as reflog:
-                for line in reflog:
-                    self.tabletree.extend([(int(line[9:19],16),int(line[20:30],16))])
-        else:
-            self.tabletree=deque(self.splitrange(addresses))
+        self.addresses = addresses
         # Start faults from the left part or the right part of the range?
         self.start_from_left=start_from_left
         # Depth-first traversal or breadth-first traversal?
@@ -147,35 +134,26 @@ class Acquisition:
         self.minfaultspercol=minfaultspercol
         # Timestamp
         self.inittimestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        # Timeout factor (if target execution is N times slower than usual it gets killed)
+        self.timeoutfactor=timeoutfactor
         # Traces format: 'default' / 'trs'
         self.savetraces_format = savetraces_format
         # Logfile
-        if logfile is None:
-            self.logfile=open('%s_%s.log' % (self.targetbin, self.inittimestamp), 'w')
-        else:
-            self.logfile=open(logfile, 'w')
+        self.logfilename=logfile
+        self.logfile=None
+        self.lastroundkeys=[]
         def sigint_handler(signal, frame):
             print('\nGot interrupted!')
             self.savetraces()
             os.remove(self.targetdata)
-            self.logfile.close()
+            if self.logfile is not None:
+                self.logfile.close()
             sys.exit(0)
         def sigusr1_handler(signal, frame):
             self.savetraces()
         signal.signal(signal.SIGINT, sigint_handler)
         signal.signal(signal.SIGUSR1, sigusr1_handler)
         self.timeout=10
-        # Prepare golden output
-        starttime=time.time()
-        oblock,status,index=self.doit(self.goldendata, protect=False, init=True)
-        # Set timeout = N times normal execution time
-        self.timeout=(time.time()-starttime)*timeoutfactor
-        if oblock is None or status is not self.FaultStatus.NoFault:
-            raise AssertionError('Error, could not obtain golden output, check your setup!')
-        self.encpairs=[(self.iblock, oblock)]
-        self.decpairs=[(self.iblock, oblock)]
-        self.encstatus=[0,0,0,0]
-        self.decstatus=[0,0,0,0]
         if self.verbose>1:
             print("Initialized!")
         if self.verbose>0:
@@ -228,7 +206,9 @@ class Acquisition:
                 tracefiles[mode=="dec"].append(trsfile)
         return tracefiles
 
-    def doit(self, table, protect=True, init=False):
+    def doit(self, table, processed_input, protect=True, init=False, lastroundkeys=None):
+        if lastroundkeys is None:
+            lastroundkeys=self.lastroundkeys
         # To avoid seldom busy file errors:
         if os.path.isfile(self.targetdata):
             os.remove(self.targetdata)
@@ -236,14 +216,14 @@ class Acquisition:
         if self.targetbin==self.targetdata:
             os.chmod(self.targetbin,0o755)
         if self.debug:
-            print(' '.join([self.targetbin] + self.processed_input))
+            print(' '.join([self.targetbin] + processed_input))
         try:
             if self.tolerate_error:
-                proc = subprocess.Popen(' '.join([self.targetbin] + self.processed_input) + '; exit 0', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
+                proc = subprocess.Popen(' '.join([self.targetbin] + processed_input) + '; exit 0', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
             elif self.shell:
-                proc = subprocess.Popen(' '.join([self.targetbin] + self.processed_input), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
+                proc = subprocess.Popen(' '.join([self.targetbin] + processed_input), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
             else:
-                proc = subprocess.Popen([self.targetbin] + self.processed_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                proc = subprocess.Popen([self.targetbin] + processed_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, errs = proc.communicate(timeout=self.timeout)
         except OSError:
             return (None, self.FaultStatus.Crash, None)
@@ -268,8 +248,8 @@ class Acquisition:
         if oblock is None:
             return (None, self.FaultStatus.Crash, None)
         else:
-            oblocktmp = self.rewind(oblock, self.lastroundkeys, self.encrypt)
-            status, index=self.check(oblocktmp, self.encrypt, self.verbose, init)
+            oblocktmp = self.dfa.rewind(oblock, lastroundkeys, self.encrypt)
+            status, index=self.dfa.check(oblocktmp, self.encrypt, self.verbose, init)
             oblock = oblocktmp if self.outputbeforelastrounds else oblock
         return (oblock, status, index)
 
@@ -313,7 +293,7 @@ class Acquisition:
                         level+=1
                     breadth_first_level_address = r[1]
             table=self.inject(r, fault[1])
-            oblock,status,index=self.doit(table)
+            oblock,status,index=self.doit(table, self.processed_input)
             log='Lvl %03i [0x%08X-0x%08X[ %s 0x%02X %0*X ->' % (level, r[0], r[1], fault[0], fault[1](0), 2*self.blocksize, self.iblock)
             if oblock is not None:
                 log+=' %0*X' % (2*self.blocksize, oblock)
@@ -385,7 +365,39 @@ class Acquisition:
                     continue
         return False
 
-    def run(self):
+    def run(self, lastroundkeys=[], encrypt=None):
+        if encrypt is not None and self.encrypt is not None:
+            assert self.encrypt==encrypt
+        if encrypt is not None and self.encrypt is None:
+            self.encrypt=encrypt
+        self.lastroundkeys=lastroundkeys
+        if self.logfilename is None:
+            self.logfile=open('%s_%s.log' % (self.targetbin, self.inittimestamp), 'w')
+        else:
+            self.logfile=open(self.logfilename, 'w')
+        if self.addresses is None:
+            self.tabletree=deque(self.splitrange((0, len(self.goldendata))))
+        elif type(self.addresses) is str:
+            self.tabletree=deque()
+            with open(self.addresses, 'r') as reflog:
+                for line in reflog:
+                    self.tabletree.extend([(int(line[9:19],16),int(line[20:30],16))])
+        else:
+            self.tabletree=deque(self.splitrange(self.addresses))
+        self.processed_input=self.processinput(self.iblock, self.blocksize)
+        if not self.processed_input:
+            self.processed_input=[]
+        # Prepare golden output
+        starttime=time.time()
+        oblock,status,index=self.doit(self.goldendata, self.processed_input, protect=False, init=True)
+        # Set timeout = N times normal execution time
+        self.timeout=(time.time()-starttime)*self.timeoutfactor
+        if oblock is None or status is not self.FaultStatus.NoFault:
+            raise AssertionError('Error, could not obtain golden output, check your setup!')
+        self.encpairs=[(self.iblock, oblock)]
+        self.decpairs=[(self.iblock, oblock)]
+        self.encstatus=[0,0,0,0]
+        self.decstatus=[0,0,0,0]
         self.dig()
         tracefiles=self.savetraces()
         os.remove(self.targetdata)

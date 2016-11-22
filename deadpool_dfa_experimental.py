@@ -26,7 +26,8 @@ def AesGetAllRoundKeys(targetbin, targetdata, goldendata,
 
     foundkey=True
     while foundkey:
-        foundkey=False
+        # TODO why repeating this? what do we miss in run()??
+        # test on kryptologik, fail after 4 rounds
         engine=deadpool_dfa.Acquisition(
             targetbin, targetdata, goldendata, phoenixAES,
             iblock, processinput, processoutput,
@@ -34,10 +35,10 @@ def AesGetAllRoundKeys(targetbin, targetdata, goldendata,
             addresses, start_from_left, depth_first_traversal,
             faults, minfaultspercol, timeoutfactor,
             savetraces_format, logfile,
-            tolerate_error, lastroundkeys, encrypt,
+            tolerate_error, encrypt,
             outputbeforelastrounds, shell, debug)
-        tracefiles_sets=engine.run()
-
+        foundkey=False
+        tracefiles_sets=engine.run(lastroundkeys, encrypt)
         if encrypt is not None:
             tracefiles = tracefiles_sets[not encrypt]
         else:
