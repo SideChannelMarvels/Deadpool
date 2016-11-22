@@ -82,5 +82,11 @@ def AesGetAllRoundKeys(targetbin, targetdata, goldendata,
             open('lastroundkeys.log', 'w').write('\n'.join(lastroundkeys))
             break
     if foundkey:
-        print('TODO reveal first key')
+        p=0 # null plaintext
+        cint,_,_=engine.doit(engine.goldendata, processinput(p, 16), lastroundkeys=[])
+        c=[(cint>>(i<<3) & 0xff) for i in range(16)][::-1]
+        kr0=phoenixAES.rewind(cint, lastroundkeys, encrypt=encrypt, mimiclastround=False)
+        # Be cautious, round key could be wrong if there is some external encoding...
+        print("First round key found?:\n%032X" % kr0)
+        lastroundkeys.append('%032X' % kr0)
     return lastroundkeys
