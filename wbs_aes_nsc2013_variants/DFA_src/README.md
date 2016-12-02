@@ -37,3 +37,10 @@ python3 DFA2.py
 ```
 
 Adapt it to your setup if needed. It requires ```phoenixAES.py``` from [JeanGrey repository](https://github.com/SideChannelMarvels/JeanGrey).
+
+Result is the last round key, so to roll back key scheduling up to initial AES key, one can e.g. use ```aes_keyschedule``` from Stark project.
+
+```bash
+aes_keyschedule FE6DA2ABE15DEDF1A40A82B0608D31CD 10
+K00: 4B45595F4B45595F4B45595F4B45595F
+```

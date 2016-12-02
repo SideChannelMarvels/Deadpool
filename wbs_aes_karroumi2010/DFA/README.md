@@ -18,3 +18,10 @@ Adapt it to your setup if needed. It requires ```deadpool_dfa.py``` from this re
 A word about ```deadpool_dfa.Acquisition``` settings:
   * ```maxleaf=64, minleaf=4, minleafnail=1```: table is Boost serialized data so we can't fault very large areas at once.
   * ```addresses=(0x57000, 0x5A000)```: it's not required, only provided here for a faster result but in a real case if you don't guess where to shoot, just try everywhere.
+
+Result is the last round key, so to roll back key scheduling up to initial AES key, one can e.g. use ```aes_keyschedule``` from Stark project.
+
+```bash
+aes_keyschedule D014F9A8C9EE2589E13F0CC8B6630CA6 10
+K00: 2B7E151628AED2A6ABF7158809CF4F3C
+```

@@ -15,3 +15,10 @@ cd tmp
 ```
 
 Adapt it to your setup if needed. It requires ```deadpool_dfa.py``` from this repository and ```phoenixAES.py``` from [JeanGrey repository](https://github.com/SideChannelMarvels/JeanGrey).
+
+Result is the last round key, so to roll back key scheduling up to initial AES key, one can e.g. use ```aes_keyschedule``` from Stark project.
+
+```bash
+aes_keyschedule 4CB01AC6313819B79C0DC9AFC154FB75 10
+K00: 693BB79CD7742262C969595C4F8D895F
+```
