@@ -151,10 +151,7 @@ def bin2daredevil(keyword=None, keywords=None, delete_bin=True, config=None, con
             if 'guess' not in config:
                 config['guess']='input'
             if 'bytenum' not in config:
-                if 'correct_key' in config:
-                    config['bytenum']='all'
-                else:
-                    config['bytenum']='0'
+                config['bytenum']='all'
             if 'bitnum' not in config:
                 config['bitnum']='all'
             if 'memory' not in config:
