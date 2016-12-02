@@ -1,0 +1,22 @@
+## Usage
+
+## Acquiring one trace with TracerPIN
+
+```bash
+Tracer -t sqlite -- ../target/wb_challenge 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+```
+
+Sqlite trace is about 2.5Mb large.
+
+## Visualizing
+
+Just fire tracegraph and load the sqlite trace:
+
+```
+tracegraph trace-full-info.sqlite &
+```
+
+On the full graph, instructions and table reads are pretty linear.
+
+On the stack, it's still hard to distinguish individual rounds.
+Still, one can observe 72 smaller units, which correspond to the 9 AES-128 rounds (minus the last round without MixCols and typically merged in the previous one in white-box setups).
