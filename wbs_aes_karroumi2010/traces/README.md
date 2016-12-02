@@ -14,7 +14,7 @@ Sqlite trace is about 1Gb large.
 Just fire tracegraph and load the sqlite trace:
 
 ```
-tracegraph &
+tracegraph trace-full-info.sqlite &
 ```
 
 We can see most AES rounds occur somewhere between 0x4676d0 and 0x468eed with the stack beyond 0x7ffffff68000.

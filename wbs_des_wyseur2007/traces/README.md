@@ -25,5 +25,5 @@ sqlitetrace wbDES.trace wbDES.sqlite
 Just fire tracegraph and load the sqlite trace:
 
 ```
-tracegraph &
+tracegraph wbDES.sqlite &
 ```

@@ -28,7 +28,7 @@ Sqlite trace is about 500Mb large.
 Just fire tracegraph and load the sqlite trace:
 
 ```
-tracegraph &
+tracegraph xiaolai.sqlite &
 ```
 
 We may guess the AES is located at the bottom, where we see 10 successive large data reads.

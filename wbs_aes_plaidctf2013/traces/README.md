@@ -12,7 +12,7 @@ Tracer -t sqlite -- ../target/drmless -f -E foo
 Just fire tracegraph and load the sqlite trace:
 
 ```
-tracegraph &
+tracegraph trace-full-info.sqlite &
 ```
 
 Instructions of the white-box are 0x8054060 to 0x82a2279 and stack at 0xffffa000.

@@ -39,5 +39,5 @@ sqlitetrace crackme.trace crackme.sqlite
 Just fire tracegraph and load the sqlite trace:
 
 ```
-tracegraph &
+tracegraph crackme.sqlite &
 ```
