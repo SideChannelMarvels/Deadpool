@@ -110,6 +110,10 @@ return int(''.join([x for x in output.split('\n') if len(x)==32][0]), 16)
   Default: None
   * ```tolerate_error```: (bool) 
   Default: False
+  * ```encrypt```: (bool or None) specify if the target is implementing an encryption or a decryption. If left undefined, it will be detected. When attacking previous rounds, it has to be defined.
+  Default: None
+  * ```outputbeforelastrounds``` (bool) when attacking previous rounds, indicate what kind of output to record: the real output or the virtual output once the known last rounds are removed.
+  Default: False
   * ```shell```: (bool) 
   Default: False
   * ```debug```: (bool) 
@@ -118,7 +122,7 @@ return int(''.join([x for x in output.split('\n') if len(x)==32][0]), 16)
 *Note: it might be that some parts of the API are still too specific to AES and will be revised and moved to DFA modules once other ciphers are added...*
 
 The DFA module is supposed to provide the following elements:
-  * ```check((int)output, (int)verbose)```: a function validating corrupted outputs and returning a tuple (FaultStatus, index)
+  * ```check((int)output, (bool/None)encrypt, (int)verbose, (bool)init)```: a function validating corrupted outputs and returning a tuple (FaultStatus, index)
   * ```blocksize```
   * ```FaultStatus```: an enumeration of possible status: Crash, Loop, NoFault, MinorFault, MajorFault, WrongFault, GoodEncFault, GoodDecFault
 

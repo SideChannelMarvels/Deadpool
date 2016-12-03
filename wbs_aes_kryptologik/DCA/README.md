@@ -25,4 +25,5 @@ With 100-200 traces, the first round key is easily recovered, no matter if
 it's from stack, data or addr1 traces.
 
 The current framework does not allow to break further rounds, tbd. 
+
 See DFA for a full attack.

@@ -56,3 +56,7 @@ An implementation of Xiao-Lai written in Go, implementing an AES 128.
 ### [CHES 2016 challenge](wbs_aes_ches2016)
 
 A Linux binary (and source) implementing an AES 128.
+
+### [Kryptologik challenge](wbs_aes_kryptologik)
+
+A JavaScript implementing an AES 256 with diversified round keys.
