@@ -213,7 +213,7 @@ class Acquisition:
         if os.path.isfile(self.targetdata):
             os.remove(self.targetdata)
         open(self.targetdata, 'wb').write(table)
-        if self.targetbin==self.targetdata:
+        if os.path.normpath(self.targetbin)==os.path.normpath(self.targetdata):
             os.chmod(self.targetbin,0o755)
         if self.debug:
             print(' '.join([self.targetbin] + processed_input))
