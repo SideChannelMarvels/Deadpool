@@ -6,7 +6,7 @@ import phoenixAES
 
 def processinput(iblock, blocksize):
     # hardcoded in spawn_drmless.py
-    return ['']
+    return (None, None)
 
 def processoutput(output, blocksize):
 # Typical output (Frida mem dump):

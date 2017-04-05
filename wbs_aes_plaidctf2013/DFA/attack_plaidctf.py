@@ -10,7 +10,7 @@ def processinput(iblock, blocksize):
     #p=b'%0*x' % (2*blocksize, iblock)  # Requires python3.5
     p=('%0*x' % (2*blocksize, iblock)).encode('utf8')
     open('foo', 'wb').write(binascii.unhexlify(p)*4)
-    return ['-f', '-E', 'foo']
+    return (None, ['-f', '-E', 'foo'])
 
 def processoutput(output, blocksize):
     return int(binascii.hexlify(output[:16]), 16)

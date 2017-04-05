@@ -6,7 +6,7 @@ import phoenixAES
 
 def processinput(iblock, blocksize):
     p='%0*x' % (2*blocksize, iblock)
-    return [p[j*2:(j+1)*2] for j in range(len(p)//2)]
+    return (None, [p[j*2:(j+1)*2] for j in range(len(p)//2)])
 
 def processoutput(output, blocksize):
     i=int(b''.join([x for x in output.split(b'\n') if x.find(b'OUTPUT')==0][0][10:].split(b' ')), 16)

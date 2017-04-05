@@ -5,7 +5,7 @@ import deadpool_dfa
 import phoenixAES
 
 def processinput(iblock, blocksize):
-    return ["-key key.txt -in <(echo %0*x|xxd -r -p) -out >(xxd -p)" % (2*blocksize, iblock)]
+    return (None, ["-key key.txt -in <(echo %0*x|xxd -r -p) -out >(xxd -p)" % (2*blocksize, iblock)])
 
 def processoutput(output, blocksize):
     return int(''.join([x for x in output.decode().split('\n') if len(x)==32][0]), 16)

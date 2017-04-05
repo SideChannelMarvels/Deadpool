@@ -35,11 +35,13 @@ def processinput(iblock, blocksize):
     """processinput() helper function
    iblock: int representation of one input block
    blocksize: int (8 for DES, 16 for AES)
-   returns a list of strings to be used as args for the target
-   default processinput(): returns one string containing the block in hex
+   returns: (bytes to be used as target stdin, a list of strings to be used as args for the target)
+   default processinput(): returns (None, one string containing the block in hex)
+   return (None, None) if input can't be injected via stdin or args
 """
-    # return None if input can't be injected
-    return ['%0*x' % (2*blocksize, iblock)]
+    return (None, ['%0*x' % (2*blocksize, iblock)])
+# Example to provide input as raw chars on stdin:
+#    return (bytes.fromhex('%0*x' % (2*blocksize, iblock)), None)
 
 def processoutput(output, blocksize):
     """processoutput() helper function
@@ -207,24 +209,29 @@ class Acquisition:
         return tracefiles
 
     def doit(self, table, processed_input, protect=True, init=False, lastroundkeys=None):
+        input_stdin, input_args = processed_input
+        if input_stdin is None:
+            input_stdin=b''
+        if input_args is None:
+            input_args=[]
         if lastroundkeys is None:
             lastroundkeys=self.lastroundkeys
         # To avoid seldom busy file errors:
         if os.path.isfile(self.targetdata):
             os.remove(self.targetdata)
         open(self.targetdata, 'wb').write(table)
-        if os.path.normpath(self.targetbin)==os.path.normpath(self.targetdata):
+        if os.path.normpath(self.targetbin) == os.path.normpath(self.targetdata):
             os.chmod(self.targetbin,0o755)
         if self.debug:
-            print(' '.join([self.targetbin] + processed_input))
+            print('echo -n "'+input_stdin.hex()+'"|xxd -r -p|'+' '.join([self.targetbin] + input_args))
         try:
             if self.tolerate_error:
-                proc = subprocess.Popen(' '.join([self.targetbin] + processed_input) + '; exit 0', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
+                proc = subprocess.Popen(' '.join([self.targetbin] + input_args) + '; exit 0', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
             elif self.shell:
-                proc = subprocess.Popen(' '.join([self.targetbin] + processed_input), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
+                proc = subprocess.Popen(' '.join([self.targetbin] + input_args), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
             else:
-                proc = subprocess.Popen([self.targetbin] + processed_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output, errs = proc.communicate(timeout=self.timeout)
+                proc = subprocess.Popen([self.targetbin] + input_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, errs = proc.communicate(input=input_stdin, timeout=self.timeout)
         except OSError:
             return (None, self.FaultStatus.Crash, None)
         except subprocess.TimeoutExpired:
@@ -385,8 +392,6 @@ class Acquisition:
         else:
             self.tabletree=deque(self.splitrange(self.addresses))
         self.processed_input=self.processinput(self.iblock, self.blocksize)
-        if not self.processed_input:
-            self.processed_input=[]
         # Prepare golden output
         starttime=time.time()
         oblock,status,index=self.doit(self.goldendata, self.processed_input, protect=False, init=True)

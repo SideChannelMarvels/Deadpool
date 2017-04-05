@@ -17,15 +17,21 @@ The script will take care of abnormal situations due to fault injection such as 
 
 To interface with the white-box implementation under attack, you must define two helper functions in a very similar way to ```deadpool_dca.py```:  
 
-```processinput()``` will take the input block defined as ```int iblock``` and the blocksize as ```int blocksize``` and will return a ```list of str``` that will be used in a [Popen](https://docs.python.org/2/library/subprocess.html) interface.
+```processinput()``` will take the input block defined as ```int iblock``` and the blocksize as ```int blocksize``` and will return a tuple (```bytes```, ```list of str```) that will be used in a [Popen](https://docs.python.org/2/library/subprocess.html) interface respectively for the command stdin and command arguments.
 
-The most elementary one is the one defined by default, returning the input as a hex string:
+The most elementary one is the one defined by default, providing the input as a hex string argument, stdin being unused:
 ```python
 def processinput(iblock, blocksize):
-    return ['%0*x' % (2*blocksize, iblock)]
+    return (None, ['%0*x' % (2*blocksize, iblock)])
 ```
 
-If the setup is such that there is no input to provide for the Popen call, e.g. because processinput will write the input in a file or because the white-box implementation generates its own random input, processinput must return ```None```.
+An example to provide input as raw chars on stdin is:
+```python```
+def processinput(iblock, blocksize):
+    return (bytes.fromhex('%0*x' % (2*blocksize, iblock)), None)
+```
+
+If the setup is such that there is no input to provide for the Popen call, e.g. because processinput will write the input in a file or because the white-box implementation generates its own random input, processinput must return ```(None, None)```.
 
 But in the case of a white-box implementation expecting an input file, consider using Bash process substitution such as e.g. ```<(echo 0001020304050607|xxd -r -p)```, which is made possible with Tracer option ```shell=True```, see below.
 
