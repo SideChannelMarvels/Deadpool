@@ -11,7 +11,9 @@ export GOPATH=$(pwd)
 mkdir -p src/github.com/OpenWhiteBox
 cd src/github.com/OpenWhiteBox
 git clone https://github.com/OpenWhiteBox/AES.git
-cd AES/examples/chow-file-encrypt
+cd AES
+git checkout 817c3e6
+cd examples/chow-file-encrypt
 ```
 
 Drop encryptECB.go there, a version of encrypt.go which processes just one block.
