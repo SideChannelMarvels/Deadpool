@@ -39,11 +39,13 @@ def processinput(iblock, blocksize):
     """processinput() helper function
    iblock: int representation of one input block
    blocksize: int (8 for DES, 16 for AES)
-   returns a list of strings to be used as args for the target
-   default processinput(): returns one string containing the block in hex
+   returns: (bytes to be used as target stdin, a list of strings to be used as args for the target)
+   default processinput(): returns (None, one string containing the block in hex)
+   return (None, None) if input can't be injected via stdin or args
 """
-    # return None if input can't be injected
-    return ['%0*x' % (2*blocksize, iblock)]
+    return (None, ['%0*x' % (2*blocksize, iblock)])
+# Example to provide input as raw chars on stdin:
+#    return (bytes.fromhex('%0*x' % (2*blocksize, iblock)), None)
 
 def processoutput(output, blocksize):
     """processoutput() helper function
@@ -297,17 +299,18 @@ class Tracer(object):
             iblock=random.randint(0, (1<<(8*self.blocksize))-1)
             oblock=self.get_trace(i, iblock)
 
-    def _exec(self, cmd_list, debug=None):
+    def _exec(self, cmd_list, input_stdin, debug=None):
         if debug is None:
             debug=self.debug
         if debug:
             print ' '.join(cmd_list)
         if self.tolerate_error:
-            output=subprocess.check_output(' '.join(cmd_list) + '; exit 0', shell=True, executable='/bin/bash')
+            proc = subprocess.Popen(' '.join(cmd_list) + '; exit 0', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
         elif self.shell:
-            output=subprocess.check_output(' '.join(cmd_list), shell=True, executable='/bin/bash')
+            proc = subprocess.Popen(' '.join(cmd_list), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
         else:
-            output=subprocess.check_output(cmd_list)
+            proc = subprocess.Popen(cmd_list, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, errs = proc.communicate(input=input_stdin)
         if debug:
             print output
         return output
@@ -377,11 +380,13 @@ class TracerPIN(Tracer):
                 f.record_info=True
     def get_trace(self, n, iblock):
         processed_input=self.processinput(iblock, self.blocksize)
-        if not processed_input:
-            processed_input=[]
-            iblock=None
-        cmd_list=[tracerpin_exec, '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--'] + self.target + processed_input
-        output=self._exec(cmd_list)
+        input_stdin, input_args = processed_input
+        if input_stdin is None:
+            input_stdin=b''
+        if input_args is None:
+            input_args=[]
+        cmd_list=[tracerpin_exec, '-q', '1', '-b', '0', '-c', '0', '-i', '0', '-f', str(self.addr_range), '-o', self.tmptracefile, '--'] + self.target + input_args
+        output=self._exec(cmd_list, input_stdin)
         oblock=self.processoutput(output, self.blocksize)
         self._trace_init(n, iblock, oblock)
         with open(self.tmptracefile, 'r') as trace:
@@ -409,11 +414,13 @@ class TracerPIN(Tracer):
         if tracefile is None:
             tracefile = self.tmptracefile
         processed_input=self.processinput(iblock, self.blocksize)
-        if not processed_input:
-            processed_input=[]
-            iblock=None
-        cmd_list=[tracerpin_exec, '-f', str(self.addr_range), '-o', tracefile, '--'] + self.target + processed_input
-        output=self._exec(cmd_list, debug=True)
+        input_stdin, input_args = processed_input
+        if input_stdin is None:
+            input_stdin=b''
+        if input_args is None:
+            input_args=[]
+        cmd_list=[tracerpin_exec, '-f', str(self.addr_range), '-o', tracefile, '--'] + self.target + input_args
+        output=self._exec(cmd_list, input_stdin, debug=True)
 
 class TracerGrind(Tracer):
     def __init__(self, target,
@@ -444,11 +451,13 @@ class TracerGrind(Tracer):
 
     def get_trace(self, n, iblock):
         processed_input=self.processinput(iblock, self.blocksize)
-        if not processed_input:
-            processed_input=[]
-            iblock=None
-        cmd_list=[tracergrind_exec, '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind'] + self.target + processed_input
-        output=self._exec(cmd_list)
+        input_stdin, input_args = processed_input
+        if input_stdin is None:
+            input_stdin=b''
+        if input_args is None:
+            input_args=[]
+        cmd_list=[tracergrind_exec, '--quiet', '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+self.tmptracefile+'.grind'] + self.target + input_args
+        output=self._exec(cmd_list, input_stdin)
         oblock=self.processoutput(output, self.blocksize)
         output=subprocess.check_output("texttrace %s >(grep '^.M' > %s)" % (self.tmptracefile+'.grind', self.tmptracefile), shell=True, executable='/bin/bash')
         if not self.debug:
@@ -474,11 +483,13 @@ class TracerGrind(Tracer):
         if tracefile is None:
             tracefile = self.tmptracefile
         processed_input=self.processinput(iblock, self.blocksize)
-        if not processed_input:
-            processed_input=[]
-            iblock=None
-        cmd_list=[tracergrind_exec, '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind'] + self.target + processed_input
-        output=self._exec(cmd_list, debug=True)
+        input_stdin, input_args = processed_input
+        if input_stdin is None:
+            input_stdin=b''
+        if input_args is None:
+            input_args=[]
+        cmd_list=[tracergrind_exec, '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind'] + self.target + input_args
+        output=self._exec(cmd_list, input_stdin, debug=True)
         output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind',tracefile))
         os.remove(tracefile+'.grind')
 

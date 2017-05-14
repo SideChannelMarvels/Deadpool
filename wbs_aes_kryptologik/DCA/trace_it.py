@@ -6,7 +6,7 @@ from deadpool_dca import *
 
 def processinput(iblock, blocksize):
     p='%0*x' % (2*blocksize, iblock)
-    return [p[j*2:(j+1)*2] for j in range(len(p)//2)]
+    return (None, [p[j*2:(j+1)*2] for j in range(len(p)//2)])
 
 def processoutput(output, blocksize):
     return int(output, 16)

@@ -5,7 +5,7 @@ sys.path.insert(0, '../../')
 from deadpool_dca import *
 
 def processinput(iblock, blocksize):
-    return ["-key ../target/key.txt -in <(echo %0*x|xxd -r -p) -out >(xxd -p)" % (2*blocksize, iblock)]
+    return (None, ["-key ../target/key.txt -in <(echo %0*x|xxd -r -p) -out >(xxd -p)" % (2*blocksize, iblock)])
 
 def processoutput(output, blocksize):
     return int(''.join([x for x in output.split('\n') if len(x)==32][0]), 16)
