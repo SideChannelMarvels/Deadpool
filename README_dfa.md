@@ -26,7 +26,7 @@ def processinput(iblock, blocksize):
 ```
 
 An example to provide input as raw chars on stdin is:
-```python```
+```python
 def processinput(iblock, blocksize):
     return (bytes.fromhex('%0*x' % (2*blocksize, iblock)), None)
 ```
