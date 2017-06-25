@@ -20,7 +20,7 @@ def processoutput(output, blocksize):
 # So we can target one of those address ranges and reduce the number of desired traces to the default for a much faster and determinitic attack:
 
 engine=deadpool_dfa.Acquisition(targetbin='./wb_challenge', targetdata='./wb_challenge', goldendata='./wb_challenge.gold',
-        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, addresses=[0x3bab0,0x3d300])
+        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, addresses=[0x3b000,0x3f000])
 tracefiles_sets=engine.run()
 for tracefile in tracefiles_sets[0]:
     if phoenixAES.crack(tracefile):
