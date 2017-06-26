@@ -342,13 +342,15 @@ class Acquisition:
                             if self.verbose>0:
                                 print(txt+' Logged')
                             if status is self.FaultStatus.GoodEncFault:
-                                self.encpairs.append(pair)
-                                self.encstatus[index]+=1
+                                if pair not in self.encpairs:
+                                    self.encpairs.append(pair)
+                                    self.encstatus[index]+=1
                                 if self.minfaultspercol is not None and [x for x in self.encstatus if x < self.minfaultspercol] == []:
                                     return True
                             else:
-                                self.decpairs.append(pair)
-                                self.decstatus[index]+=1
+                                if pair not in self.decpairs:
+                                    self.decpairs.append(pair)
+                                    self.decstatus[index]+=1
                                 if self.minfaultspercol is not None and [x for x in self.decstatus if x < self.minfaultspercol] == []:
                                     return True
                             self.logfile.write(txt+'\n')
@@ -459,13 +461,15 @@ class Acquisition:
                         if self.verbose>0:
                             print(txt+' Logged')
                         if status is self.FaultStatus.GoodEncFault:
-                            self.encpairs.append(pair)
-                            self.encstatus[index]+=1
+                            if pair not in self.encpairs:
+                                self.encpairs.append(pair)
+                                self.encstatus[index]+=1
                             if self.minfaultspercol is not None and [x for x in self.encstatus if x < self.minfaultspercol] == []:
                                 return True
                         else:
-                            self.decpairs.append(pair)
-                            self.decstatus[index]+=1
+                            if pair not in self.decpairs:
+                                self.decpairs.append(pair)
+                                self.decstatus[index]+=1
                             if self.minfaultspercol is not None and [x for x in self.decstatus if x < self.minfaultspercol] == []:
                                 return True
                         self.logfile.write(txt+'\n')
