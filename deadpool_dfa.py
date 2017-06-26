@@ -342,15 +342,15 @@ class Acquisition:
                             if self.verbose>0:
                                 print(txt+' Logged')
                             if status is self.FaultStatus.GoodEncFault:
-                                self.encpairs.append(pair)
-                                self.unique_encpairs[index].add(pair)
-                                self.encstatus[index] = len(self.unique_encpairs[index])
+                                if pair not in self.encpairs:
+                                    self.encpairs.append(pair)
+                                    self.encstatus[index]+=1
                                 if self.minfaultspercol is not None and [x for x in self.encstatus if x < self.minfaultspercol] == []:
                                     return True
                             else:
-                                self.decpairs.append(pair)
-                                self.unique_decpairs[index].add(pair)
-                                self.decstatus[index] = len(self.unique_decpairs[index])
+                                if pair not in self.decpairs:
+                                    self.decpairs.append(pair)
+                                    self.decstatus[index]+=1
                                 if self.minfaultspercol is not None and [x for x in self.decstatus if x < self.minfaultspercol] == []:
                                     return True
                             self.logfile.write(txt+'\n')
@@ -403,8 +403,6 @@ class Acquisition:
             raise AssertionError('Error, could not obtain golden output, check your setup!')
         self.encpairs=[(self.iblock, oblock)]
         self.decpairs=[(self.iblock, oblock)]
-        self.unique_encpairs=[set(), set(), set(), set()]
-        self.unique_decpairs=[set(), set(), set(), set()]
         self.encstatus=[0,0,0,0]
         self.decstatus=[0,0,0,0]
         self.dig()
@@ -463,15 +461,15 @@ class Acquisition:
                         if self.verbose>0:
                             print(txt+' Logged')
                         if status is self.FaultStatus.GoodEncFault:
-                            self.encpairs.append(pair)
-                            self.unique_encpairs[index].add(pair)
-                            self.encstatus[index] = len(self.unique_encpairs[index])
+                            if pair not in self.encpairs:
+                                self.encpairs.append(pair)
+                                self.encstatus[index]+=1
                             if self.minfaultspercol is not None and [x for x in self.encstatus if x < self.minfaultspercol] == []:
                                 return True
                         else:
-                            self.decpairs.append(pair)
-                            self.unique_decpairs[index].add(pair)
-                            self.decstatus[index] = len(self.unique_decpairs[index])
+                            if pair not in self.decpairs:
+                                self.decpairs.append(pair)
+                                self.decstatus[index]+=1
                             if self.minfaultspercol is not None and [x for x in self.decstatus if x < self.minfaultspercol] == []:
                                 return True
                         self.logfile.write(txt+'\n')
@@ -498,15 +496,11 @@ class Acquisition:
             oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
             self.encpairs=[(self.dfa.MC(self.iblock), oblock)]
             self.decpairs=[(self.dfa.MC(self.iblock), oblock)]
-            self.unique_encpairs=[set(), set(), set(), set()]
-            self.unique_decpairs=[set(), set(), set(), set()]
         else:
             processed_input=self.processinput(self.iblock, self.blocksize)
             oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
             self.encpairs=[(self.iblock, oblock)]
             self.decpairs=[(self.iblock, oblock)]
-            self.unique_encpairs=[set(), set(), set(), set()]
-            self.unique_decpairs=[set(), set(), set(), set()]
         # Set timeout = N times normal execution time
         self.timeout=(time.time()-starttime)*self.timeoutfactor
         if oblock is None or status is not self.FaultStatus.NoFault:
