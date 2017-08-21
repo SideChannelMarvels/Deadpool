@@ -65,6 +65,10 @@ A Linux binary (and source) implementing an AES 128.
 
 A JavaScript implementing an AES 256 with diversified round keys.
 
+### [Lee CASE1 challenge](wbs_aes_lee_case1)
+
+A Linux binary implementing an AES 128.
+
 ### [White Magic challenge](wbs_xxx_whitemagic)
 
 A linux binary implementing ... (CTF still open)
