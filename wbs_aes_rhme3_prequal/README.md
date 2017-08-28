@@ -18,3 +18,4 @@ write-ups
 * https://github.com/ResultsMayVary/ctf/tree/master/RHME3/whitebox (using Deadpool tools)
 * https://gist.github.com/KarlVogel/2de84d386080d7d1b60209c8b8a43470 (using Deadpool tools)
 * https://github.com/pakesson/ctf/blob/master/RHme3/qualifiers/whitebox/trace_it.py (using Deadpool tools)
+* https://govanify.com/post/rhme3-quals-ctf/ (using Deadpool tools)
