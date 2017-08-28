@@ -14,4 +14,6 @@ write-ups
 ---------
 
 * https://gist.github.com/niklasb/d0c8a5866b436f226b597e7f8c25d11e
-* https://github.com/ResultsMayVary/ctf/tree/master/RHME3/whitebox (using Deadpool tools ;) )
+* https://gist.github.com/bennofs/dc8d3a845bca0f5888192b50c19e669f
+* https://github.com/ResultsMayVary/ctf/tree/master/RHME3/whitebox (using Deadpool tools)
+* https://gist.github.com/KarlVogel/2de84d386080d7d1b60209c8b8a43470 (using Deadpool tools)
