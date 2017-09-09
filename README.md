@@ -69,6 +69,14 @@ A JavaScript implementing an AES 256 with diversified round keys.
 
 A Linux binary implementing an AES 128.
 
+### [RHME3 prequal whitebox challenge](wbs_aes_rhme3_prequal)
+
+A Linux binary implementing an AES 128.
+
 ### [White Magic challenge](wbs_xxx_whitemagic)
 
 A linux binary implementing ... (CTF still open)
+
+## Misc
+
+### [RHME3 prequal SCA challenge](sca_aes_rhme3_prequal)
