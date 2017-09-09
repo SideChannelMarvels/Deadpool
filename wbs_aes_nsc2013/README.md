@@ -10,8 +10,8 @@ Components
 * `RE` contains the reverse-engineering of the binary up to a "clean" white-box implementation.
 * `ALG` contains an algebraic attack against the "clean" white-box implementation.
 
-Write-ups
----------
+Other write-ups
+---------------
 
 * http://0vercl0k.tuxfamily.org/bl0g/?p=253
 * http://kutioo.blogspot.be/2013/05/nosuchcon-2013-challenge-write-up-and.html

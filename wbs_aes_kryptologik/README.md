@@ -19,6 +19,6 @@ Components
 * `traces` contains explanations on how to acquire a visual trace and snapshots.
 * `DFA` contains the DFA attack against this challenge.
 
-Write-ups
----------
+Other write-ups
+---------------
 

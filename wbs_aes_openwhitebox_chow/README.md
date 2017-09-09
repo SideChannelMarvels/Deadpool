@@ -14,8 +14,8 @@ Components
 
 See the projet wiki for the corresponding tutorial.
 
-Write-ups
----------
+Other write-ups
+---------------
 
 It was not a real challenge, but the OpenWhiteBox project has a cryptanalysis module for Chow:
 

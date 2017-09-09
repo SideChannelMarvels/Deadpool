@@ -11,6 +11,6 @@ Components
 * `ALG` contains an algebraic attack against this challenge.
 * `ALG2` contains another algebraic attack against this challenge.
 
-write-ups
----------
+Other write-ups
+---------------
 * http://wiki.yobi.be/wiki/CHES2015_Writeup#Challenge_4

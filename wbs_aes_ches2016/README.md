@@ -10,7 +10,7 @@ Components
 * `DCA` contains the DCA attack against this challenge.
 * `DFA` contains the DFA attack against this challenge.
 
-write-ups
----------
+Other write-ups
+---------------
 
 * https://eprint.iacr.org/2016/807

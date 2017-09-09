@@ -12,7 +12,7 @@ Components
 
 See the projet wiki for the corresponding tutorial.
 
-Write-ups
----------
+Other write-ups
+---------------
 
 * http://www.phrack.org/issues/68/8.html

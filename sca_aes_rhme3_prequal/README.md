@@ -11,8 +11,8 @@ Components
 * `target` contains the original challenge.
 * `DPA` contains the DPA attack against this challenge.
 
-write-ups
----------
+Other write-ups
+---------------
 
 * https://github.com/ResultsMayVary/ctf/tree/master/RHME3/tracing (using Jlsca)
 * https://github.com/x8-999-github/cw-projects-experiments/blob/master/tracing_the_traces/tracing_the_traces_jlsca.ipynb (using Jlsca)

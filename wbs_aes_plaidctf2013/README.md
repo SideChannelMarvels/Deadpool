@@ -12,8 +12,8 @@ Components
 * `DFA` contains the DFA attack against this challenge.
 * `DFA2` contains the DFA attack against this challenge, another variant.
 
-Write-ups
----------
+Other write-ups
+---------------
 
 * http://int3pids.blogspot.be/2013/04/plaidctf-2013-drmless-binary-250-write.html
 * http://www.limited-entropy.com/plaidctf-2013-drmless/

@@ -15,5 +15,5 @@ Components
 * `target` contains the binary and table and instructions how to use tem, as well as the solution (the key to recover).
 * `traces` contains explanations on how to acquire a visual trace and snapshots.
 
-Write-ups
----------
+Other write-ups
+---------------

@@ -11,6 +11,6 @@ Components
   The solution (the key to recover) is not provided because the CTF is still running, but has been found ;)
 * `traces` contains explanations on how to acquire a visual trace and snapshots.
 
-Write-ups
----------
+Other write-ups
+---------------
 

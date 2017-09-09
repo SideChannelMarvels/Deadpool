@@ -10,8 +10,8 @@ Components
 * `DCA` contains the DCA attack against this challenge.
 * `DFA` contains the DFA attack against this challenge.
 
-write-ups
----------
+Other write-ups
+---------------
 
 * https://gist.github.com/niklasb/d0c8a5866b436f226b597e7f8c25d11e
 * https://gist.github.com/bennofs/dc8d3a845bca0f5888192b50c19e669f

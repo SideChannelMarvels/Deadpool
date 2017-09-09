@@ -14,7 +14,7 @@ Components
 
 See the projet wiki for the corresponding tutorial.
 
-Write-ups
----------
+Other write-ups
+---------------
 
 * http://communaute.sstic.org/ChallengeSSTIC2012
