@@ -42,13 +42,23 @@ for i in range(300):
 plt.show()
 ```
 
-See [../traces/traces.png]
+![Traces](../traces/traces.png)
 
 They are obviously misaligned.
 
-Looking at a single trace [../traces/trace.png] and comparing it with [../target/overview.png], we see the samples are corresponding to the first rounds.
-We see also in [../target/overview.png] that there are 10 rounds.
+Looking at a single trace
+
+![Trace](../traces/trace.png)
+
+and comparing it with the overview
+
+![Overview](../target/overview.png)
+
+We see the samples are corresponding to the first rounds.
+We see also in the overview that there are 10 rounds.
+
 So this is very probably an AES128 and we will have to attack the first rounds based on the inputs.
+
 Let's assume it's an encryption.
 
 To realign traces, we'll use [qscat](https://github.com/FdLSifu/qscat) which has been updated during the challenge to cooperate with Daredevil.
@@ -79,10 +89,15 @@ When realigning based on the third big wave, we'll get interesting results:
 * Synchronization
   * Reference Pattern: 2200 to 2500
   * Window Search: -150 to +150
+  * Add Step
   * Run synchro
 * Save file, "realigned", binary
 
-Let's prepare the config file of Daredevil:
+The result:
+
+![Realigned traces](../traces/traces_realigned.png)
+
+Let's feed the realigned traces to Daredevil:
 
 ```
 sed 's/trace=traces.trs.traces/trace=realigned/' traces.trs.config > realigned.config
