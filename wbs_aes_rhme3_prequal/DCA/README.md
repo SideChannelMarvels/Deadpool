@@ -19,7 +19,7 @@ When looking to the graph of a trace (see [traces](../traces)), we see the instr
 Executing the differential analysis on the converted traces:
 
 ```bash
-daredevil -c mem_addr1_rw1_32_7976.attack_sbox.config
+daredevil -c mem_addr1_rw1_32_7976.config
 Most probable key max(abs):
 1: 16: 61316c5f7434623133355f525f6f5235
 ```
