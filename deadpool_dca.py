@@ -229,9 +229,9 @@ def bin2trs(keyword=None, keywords=None, delete_bin=True):
             trs.write('\x5F\x00')
             for filename, (iblock, oblock) in traces_meta.iteritems():
                 if iblock_available:
-                    trs.write(('%0*X' % (2*blocksize, iblock)).decode('hex'))
+                    trs.write(iblock.decode('hex'))
                 if oblock_available:
-                    trs.write(('%0*X' % (2*blocksize, oblock)).decode('hex'))
+                    trs.write(oblock.decode('hex'))
                 with open(filename, 'rb') as trace:
                     trs.write(serializechars(trace.read(min_size)))
                 if delete_bin:
