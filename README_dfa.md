@@ -35,7 +35,7 @@ If the setup is such that there is no input to provide for the Popen call, e.g. 
 
 But in the case of a white-box implementation expecting an input file, consider using Bash process substitution such as e.g. ```<(echo 0001020304050607|xxd -r -p)```, which is made possible with Tracer option ```shell=True```, see below.
 
-Besides providing the input data to the white-box implementation, processoutput is responsible to provide it all the required options.
+Besides providing the input data to the white-box implementation, processinput is responsible to provide it all the required options.
 
 Each parameter must be provided in a separate string of the returned list. If Tracer option ```shell=True``` will be used, then it's not required to separate each parameter but the string must still be in a list.
 
