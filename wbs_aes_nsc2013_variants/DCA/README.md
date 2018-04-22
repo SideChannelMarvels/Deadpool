@@ -22,7 +22,7 @@ Using Tracer to acquire execution traces, here recording the lowest byte of each
 ...
 ```
 
-By default the script is using TracerPIN but if you want you can change it to use TracerGrind
+By default the script is using TracerGrind but if you want you can change it to use TracerPIN
 
 Executing the differential analysis on the converted traces:
 
