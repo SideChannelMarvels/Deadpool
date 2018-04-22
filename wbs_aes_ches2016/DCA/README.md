@@ -3,7 +3,7 @@ Usage
 
 First go to the ```target``` directory and compile the white-box.
 
-Using Tracer to acquire execution traces, here recording the lowest byte of each address from which data is being read:
+Using TracerGrind to acquire execution traces on address range 0x108000-0x130000, here recording the lowest byte of each address from which data is being read:
 
 ```bash
 ./trace_it.py
@@ -15,7 +15,7 @@ Using Tracer to acquire execution traces, here recording the lowest byte of each
 ...
 ```
 
-By default the script is using TracerPIN but if you want you can change it to use TracerGrind
+By default the script is using TracerGrind but if you want you can change it to use TracerPIN
 
 Executing the differential analysis on the converted traces...
 
