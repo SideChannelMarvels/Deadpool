@@ -1,6 +1,7 @@
 #!/bin/bash
 
-valgrind --trace-children=yes --tool=tracergrind --filter=0x401000-0x401243 --vex-iropt-register-updates=allregs-at-mem-access --output=crackme.trace wine32 ../target/crackme.exe &
+# Make sure to use the 32-bit version of Wine
+valgrind --trace-children=yes --tool=tracergrind --filter=0x401000-0x401243 --vex-iropt-register-updates=allregs-at-mem-access --output=crackme.trace wine ../target/crackme.exe &
 sleep 1
 xdotool - << EOF
 search --sync --limit 1 --name Crackme
