@@ -7,6 +7,8 @@ Components
 ----------
 
 * `target` contains the original white-box and instructions how to use it.
+* `DCA` contains the DCA attack against this challenge.
+* `DFA` contains the DFA attack against this challenge.
 
 Other write-ups
 ---------------
