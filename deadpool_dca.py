@@ -467,7 +467,7 @@ class TracerGrind(Tracer):
             for line in iter(trace.readline, ''):
                 mem_mode=line[line.index('MODE')+6]
                 mem_addr=int(line[line.index('START_ADDRESS')+15:line.index('START_ADDRESS')+31], 16)
-                mem_size=int(line[line.index('LENGTH')+7:line.index('LENGTH')+9])
+                mem_size=int(line[line.index('LENGTH')+7:line.index('LENGTH')+10])
                 mem_data=int(line[line.index('DATA')+6:].replace(" ",""), 16)
                 for f in self.filters:
                     if mem_mode in f.modes and f.condition(self.stack_range, mem_addr, mem_size, mem_data):
