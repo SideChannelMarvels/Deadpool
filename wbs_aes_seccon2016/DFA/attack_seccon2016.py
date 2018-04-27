@@ -5,13 +5,10 @@ import phoenixAES
 import struct
 
 def processinput(iblock, blocksize):
-    assert blocksize==16
-    return (struct.pack(">QQ", iblock//(2**64), iblock%(2**64)), [])
+    return (bytes.fromhex('%0*x' % (2*blocksize, iblock)), None)
 
 def processoutput(output, blocksize):
-    assert blocksize==16
-    a1, a2=struct.unpack(">QQ", output)
-    return a1*(2**64)+a2
+    return int.from_bytes(output, byteorder='big', signed=False)
 
 #engine=deadpool_dfa.Acquisition(targetbin='./main64', targetdata='./libnative-lib.so', goldendata='./libnative-lib.so.gold',
 #        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, verbose=2, minleaf=1, minleafnail=1)
