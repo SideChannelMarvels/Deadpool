@@ -5,7 +5,7 @@ On a Debian testing/unstable:
 
 ```bash
 git clone https://github.com/ph4r05/Whitebox-crypto-AES.git
-apt-get install libntl-dev libboost-iostreams1.58-dev libboost-program-options1.58-dev libboost-random1.58-dev libboost-serialization1.58-dev
+apt-get install libntl-dev libboost-iostreams1.62-dev libboost-program-options1.62-dev libboost-random1.62-dev libboost-serialization1.62-dev
 cd Whitebox-crypto-AES
 # git checkout bc52b32
 ./build-release.sh
@@ -13,7 +13,7 @@ cd Whitebox-crypto-AES
 
 You'll find here the result of the ```Release``` compilation.
 
-Because current Debian stable is still with Boost 1.55, you can find also a version compiled with Boost 1.55.
+You can find also versions compiled with Boost 1.55 and 1.58.
 
 Usage
 -----
