@@ -19,5 +19,5 @@ engine=deadpool_dfa.Acquisition(targetbin='./main64', targetdata='./libnative-li
 
 tracefiles_sets=engine.run()
 for tracefile in tracefiles_sets[0]:
-    if phoenixAES.crack(tracefile):
+    if phoenixAES.crack_file(tracefile):
         break

@@ -22,5 +22,5 @@ engine=deadpool_dfa.Acquisition(targetbin='./spawn_drmless.py', targetdata='./dr
 #        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, maxleaf=2048, faults=[('nop', lambda x: 0x90)], verbose=2)
 tracefiles=engine.run()
 for trace in tracefiles:
-    if phoenixAES.crack(trace, encrypt=False):
+    if phoenixAES.crack_file(trace, encrypt=False):
         break

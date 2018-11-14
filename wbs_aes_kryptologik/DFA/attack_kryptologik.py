@@ -14,4 +14,4 @@ def processoutput(output, blocksize):
 lastroundkeys=deadpool_dfa_experimental.AesGetAllRoundKeys(targetbin='./DemoKey_table_encrypt', targetdata='DemoKey_table.bin', goldendata='DemoKey_table.bin.gold',
             processinput=processinput, processoutput=processoutput, verbose=2, maxleaf=0x800, minleaf=0x100, outputbeforelastrounds=True)
 print("Possible round keys in the natural order (first ones may be missing):")
-print('\n'.join(lastroundkeys[::-1]))
+print('\n'.join([x.hex() for x in lastroundkeys[::-1]]))

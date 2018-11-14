@@ -14,5 +14,5 @@ engine=deadpool_dfa.Acquisition(targetbin='./main', targetdata='tables_karroumi_
         dfa=phoenixAES, processinput=processinput, processoutput=processoutput, shell=True, verbose=2)
 tracefiles_sets=engine.run()
 for tracefile in tracefiles_sets[0]:
-    if phoenixAES.crack(tracefile):
+    if phoenixAES.crack_file(tracefile):
         break

@@ -52,11 +52,11 @@ def AesGetAllRoundKeys(targetbin, targetdata, goldendata,
             else:
                 tracefiles=[]
         for tracefile in tracefiles:
-            k=phoenixAES.crack(tracefile, lastroundkeys, encrypt, outputbeforelastrounds and len(lastroundkeys)>0, verbose)
+            k=phoenixAES.crack_file(tracefile, lastroundkeys, encrypt, outputbeforelastrounds and len(lastroundkeys)>0, verbose)
             if k:
                 foundkey=True
-                lastroundkeys.append(k)
-                open('lastroundkeys.log', 'w').write('\n'.join(lastroundkeys))
+                lastroundkeys.append(bytes.fromhex(k))
+                open('lastroundkeys.log', 'w').write('\n'.join([l.hex() for l in lastroundkeys]))
                 break
     # Fuzzing directly the input:
     # This was only tested on encryption!
@@ -75,18 +75,17 @@ def AesGetAllRoundKeys(targetbin, targetdata, goldendata,
         else:
             tracefiles=[]
     for tracefile in tracefiles:
-        k=phoenixAES.crack(tracefile, lastroundkeys, encrypt, outputbeforelastrounds and len(lastroundkeys)>0, verbose)
+        k=phoenixAES.crack_file(tracefile, lastroundkeys, encrypt, outputbeforelastrounds and len(lastroundkeys)>0, verbose)
         if k:
             foundkey=True
-            lastroundkeys.append(k)
-            open('lastroundkeys.log', 'w').write('\n'.join(lastroundkeys))
+            lastroundkeys.append(bytes.fromhex(k))
+            open('lastroundkeys.log', 'w').write('\n'.join([l.hex() for l in lastroundkeys]))
             break
     if foundkey:
         p=0 # null plaintext
         cint,_,_=engine.doit(engine.goldendata, processinput(p, 16), lastroundkeys=[])
-        c=[(cint>>(i<<3) & 0xff) for i in range(16)][::-1]
-        kr0=phoenixAES.rewind(cint, lastroundkeys, encrypt=encrypt, mimiclastround=False)
+        kr0=phoenixAES.rewind(phoenixAES.int2bytes(cint), lastroundkeys, encrypt=encrypt, mimiclastround=False)
         # Be cautious, round key could be wrong if there is some external encoding...
-        print("First round key found?:\n%032X" % kr0)
-        lastroundkeys.append('%032X' % kr0)
+        print("First round key found?:\n%s" % kr0.hex())
+        lastroundkeys.append(kr0)
     return lastroundkeys

@@ -249,15 +249,19 @@ class Acquisition:
             oblock=self.try_processoutput(output, self.blocksize)
         else:
             oblock=self.processoutput(output, self.blocksize)
+        if oblock is not None and oblock.bit_length() > self.blocksize * 8:
+            oblock = None
         if self.debug:
             print(oblock)
             sys.exit(0)
         if oblock is None:
             return (None, self.FaultStatus.Crash, None)
         else:
+            oblock = self.dfa.int2bytes(oblock)
             oblocktmp = self.dfa.rewind(oblock, lastroundkeys, self.encrypt)
             status, index=self.dfa.check(oblocktmp, self.encrypt, self.verbose, init)
             oblock = oblocktmp if self.outputbeforelastrounds else oblock
+            oblock = self.dfa.bytes2int(oblock)
         return (oblock, status, index)
 
     def splitrange(self, r, mincut=1):
@@ -428,7 +432,9 @@ class Acquisition:
             ib[i]=fault[1](ib[i])
             iblock=int(''.join(["%02X" % x for x in ib]), 16)
             if mimiclastround:
-                iblock=self.dfa.MC(iblock)
+                iblock = self.dfa.int2bytes(iblock)
+                iblock = self.dfa.MC(iblock)
+                iblock = self.dfa.bytes2int(iblock)
             processed_input=self.processinput(iblock, self.blocksize)
             oblock,status,index=self.doit(table, processed_input)
             log='Lvl in  [%02i] %s 0x%02X %0*X ->' % (i, fault[0], fault[1](0), 2*self.blocksize, iblock)
@@ -491,16 +497,15 @@ class Acquisition:
             self.logfile=open(self.logfilename, 'w')
         # Prepare golden output
         starttime=time.time()
+        iblock=self.iblock
         if mimiclastround:
-            processed_input=self.processinput(self.dfa.MC(self.iblock), self.blocksize)
-            oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
-            self.encpairs=[(self.dfa.MC(self.iblock), oblock)]
-            self.decpairs=[(self.dfa.MC(self.iblock), oblock)]
-        else:
-            processed_input=self.processinput(self.iblock, self.blocksize)
-            oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
-            self.encpairs=[(self.iblock, oblock)]
-            self.decpairs=[(self.iblock, oblock)]
+            iblock = self.dfa.int2bytes(iblock)
+            iblock = self.dfa.MC(iblock)
+            iblock = self.dfa.bytes2int(iblock)
+        processed_input=self.processinput(iblock, self.blocksize)
+        oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
+        self.encpairs=[(iblock, oblock)]
+        self.decpairs=[(iblock, oblock)]
         # Set timeout = N times normal execution time
         self.timeout=(time.time()-starttime)*self.timeoutfactor
         if oblock is None or status is not self.FaultStatus.NoFault:

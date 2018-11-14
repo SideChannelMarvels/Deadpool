@@ -3,7 +3,7 @@
 import subprocess
 import struct
 import sys
-sys.path.insert(0, '../../../JeanGrey/')
+sys.path.insert(0, '../../../JeanGrey/phoenixAES/')
 import phoenixAES
 
 TRACES=20
@@ -21,4 +21,4 @@ with open(TRACEFILE, 'wb') as tracefile:
         tracefile.write(('%0*X %0*X\n' % (2*BLOCKSIZE, plain, 2*BLOCKSIZE, cipher)).encode('utf8'))
         if i==0:
             CHALLENGE=CHALLENGE+"_DFA"
-phoenixAES.crack(TRACEFILE)
+phoenixAES.crack_file(TRACEFILE)

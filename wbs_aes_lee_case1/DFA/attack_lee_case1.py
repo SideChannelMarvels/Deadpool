@@ -16,5 +16,5 @@ engine=deadpool_dfa.Acquisition(targetbin='./WB_LEE_CASE1_Client', targetdata='T
         dfa=phoenixAES, processinput=processinput, processoutput=processoutput, verbose=2)
 tracefiles_sets=engine.run()
 for tracefile in tracefiles_sets[0]:
-    if phoenixAES.crack(tracefile):
+    if phoenixAES.crack_file(tracefile):
         break

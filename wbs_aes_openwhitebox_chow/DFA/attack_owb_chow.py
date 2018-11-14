@@ -31,5 +31,5 @@ engine=deadpool_dfa.Acquisition(targetbin='./encryptECB', targetdata='key.txt', 
 
 tracefiles_sets=engine.run()
 for tracefile in tracefiles_sets[0]:
-    if phoenixAES.crack(tracefile):
+    if phoenixAES.crack_file(tracefile):
         break

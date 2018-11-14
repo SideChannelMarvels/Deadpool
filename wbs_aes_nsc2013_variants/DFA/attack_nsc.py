@@ -11,5 +11,5 @@ engine=deadpool_dfa.Acquisition(targetbin='./nosuchcon_2013_whitebox_allenc', ta
         dfa=phoenixAES, processoutput=processoutput, verbose=2)
 tracefiles_sets=engine.run()
 for tracefile in tracefiles_sets[0]:
-    if phoenixAES.crack(tracefile):
+    if phoenixAES.crack_file(tracefile):
         break

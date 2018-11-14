@@ -9,7 +9,8 @@ USE_PRECOMPILED_CHALLENGE=true
 
 mkdir -p tmp
 mount|grep -q $(pwd)/tmp || sudo mount -t tmpfs -o mode=01777,size=20m tmpfs tmp
-cp attack_ches2016.py ../../deadpool_dfa.py ../../../JeanGrey/phoenixAES.py tmp
+cp attack_ches2016.py ../../deadpool_dfa.py tmp
+cp ../../../JeanGrey/phoenixAES/phoenixAES/__init__.py tmp/phoenixAES.py
 $USE_PRECOMPILED_CHALLENGE || cp ../target/*.[ch] ../target/Makefile tmp
 $USE_PRECOMPILED_CHALLENGE && cp ../target/wb_challenge tmp
 cd tmp
