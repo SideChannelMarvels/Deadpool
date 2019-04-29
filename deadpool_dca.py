@@ -440,7 +440,7 @@ class TracerGrind(Tracer):
         # Execution address range
         # Valgrind: reduce at least to 0x400000-0x3ffffff to avoid self-tracing
         if addr_range == 'default':
-            self.addr_range='0x400000-0x3ffffff'
+            self.addr_range='0x400000-0x3ffffff,' + os.path.realpath(target)
         if stack_range == 'default':
             if self.arch==ARCH.i386:
                 self.stack_range =(0xf0000000, 0xffffffff)
