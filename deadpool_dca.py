@@ -490,7 +490,7 @@ class TracerGrind(Tracer):
             input_args=[]
         cmd_list=[tracergrind_exec, '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind'] + self.target + input_args
         output=self._exec(cmd_list, input_stdin, debug=True)
-        output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind',tracefile))
+        output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind',tracefile), shell=True)
         os.remove(tracefile+'.grind')
 
 def serializechars(s, _out={}):
