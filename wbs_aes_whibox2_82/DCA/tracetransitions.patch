@@ -1,0 +1,14 @@
+0a1,2
+> #include <stdio.h>
+> 
+59989c59991,59992
+< 	while (round >= 0)
+---
+>     int prev;
+> 	while (round >= 0) {
+59990a59994,59998
+> 		// INSERTHERE
+> 
+>         prev = round;
+> 	}
+>     printf("\n");

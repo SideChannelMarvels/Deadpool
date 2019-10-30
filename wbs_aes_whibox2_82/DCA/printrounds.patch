@@ -1,0 +1,10 @@
+0a1,2
+> #include <stdio.h>
+> 
+59989c59991
+< 	while (round >= 0)
+---
+> 	while (round >= 0) {
+59990a59993,59994
+> 		printf("%d\n", round);
+> 	}
