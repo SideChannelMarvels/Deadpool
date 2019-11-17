@@ -19,6 +19,8 @@ Looks like PIRET and QUISQUATER found a way to do it, will you ?
 Compilation
 -----------
 
+To run the provided code, we add a small main.c
+
 ```bash
 tar xf 1573854749.4296393_e6b19a0f2ddea947e2166ddf9c7fa852e93cd3f4.tar.gz
 gcc -o main main.c
