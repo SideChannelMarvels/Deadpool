@@ -14,7 +14,7 @@ def processinput(iblock, blocksize):
 def processoutput(output, blocksize):
     return int(output[:32], 16)
 
-
 engine=deadpool_dfa.Acquisition(targetbin='./main', targetdata='./main', goldendata='main.gold',
-        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, maxleaf=128, minleaf=1, verbose=2, addresses=(0x30000, 0x40000), faults=[('xor4', lambda x: x ^ random.randint(1,0xF))])
+        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, maxleaf=128, minleaf=1, verbose=2, addresses=(0x38000, 0x40000))
+#        dfa=phoenixAES, processinput=processinput, processoutput=processoutput, maxleaf=128, minleaf=1, verbose=2, addresses=(0x15000, 0x65000))
 tracefiles_sets=engine.run()
