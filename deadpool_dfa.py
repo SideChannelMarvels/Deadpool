@@ -160,7 +160,7 @@ class Acquisition:
             print("Initialized!")
         if self.verbose>0:
             print('Press Ctrl+C to interrupt')
-            print('Send SIGUSR1 to dump intermediate results file: $ kill -SIGUSR1 %i' % os.getpid())
+            print(('Send SIGUSR1 to dump intermediate results file: $ kill -SIGUSR1 %i' % os.getpid()))
 
     def savetraces(self):
         if len(self.encpairs) <= 1 and len(self.decpairs) <= 1:
@@ -171,14 +171,14 @@ class Acquisition:
         elif self.savetraces_format == 'trs':
             return self.savetrs()
         else:
-            print('Error: unknown format: '+ self.savetraces_format)
+            print(('Error: unknown format: '+ self.savetraces_format))
 
     def savedefault(self):
         tracefiles=([], [])
         for goodpairs, mode in [(self.encpairs, "enc"), (self.decpairs, "dec")]:
             if len(goodpairs) > 1:
                 tracefile='dfa_%s_%s-%s_%i.txt' % (mode, self.inittimestamp, datetime.datetime.now().strftime('%H%M%S'), len(goodpairs))
-                print('Saving %i traces in %s' % (len(goodpairs), tracefile))
+                print(('Saving %i traces in %s' % (len(goodpairs), tracefile)))
                 with open(tracefile, 'wb') as f:
                     for (iblock, oblock) in goodpairs:
                         f.write(('%0*X %0*X\n' % (2*self.blocksize, iblock, 2*self.blocksize, oblock)).encode('utf8'))
@@ -190,7 +190,7 @@ class Acquisition:
         for goodpairs, mode in [(self.encpairs, "enc"), (self.decpairs, "dec")]:
             if len(goodpairs) > 1:
                 trsfile='trs_%s_%s-%s_%i.trs' % (mode, self.inittimestamp, datetime.datetime.now().strftime('%H%M%S'), len(goodpairs))
-                print('Saving %i traces in %s' % (len(goodpairs), trsfile))
+                print(('Saving %i traces in %s' % (len(goodpairs), trsfile)))
                 with open(trsfile, 'wb') as trs:
                     # Nr of traces
                     trs.write(b'\x41\x04' + struct.pack('<I', len(goodpairs)))
@@ -204,7 +204,7 @@ class Acquisition:
                     trs.write(b'\x5F\x00')
                     for (iblock, oblock) in goodpairs:
                         # crypto data
-                        trs.write(iblock.to_bytes(self.blocksize,'big')+oblock.to_bytes(self.blocksize,'big'))
+                        trs.write(iblock.to_bytes(self.blocksize, 'big')+oblock.to_bytes(self.blocksize, 'big'))
                 tracefiles[mode=="dec"].append(trsfile)
         return tracefiles
 
@@ -221,9 +221,9 @@ class Acquisition:
             os.remove(self.targetdata)
         open(self.targetdata, 'wb').write(table)
         if os.path.normpath(self.targetbin) == os.path.normpath(self.targetdata):
-            os.chmod(self.targetbin,0o755)
+            os.chmod(self.targetbin, 0o755)
         if self.debug:
-            print('echo -n "'+input_stdin.hex()+'"|xxd -r -p|'+' '.join([self.targetbin] + input_args))
+            print(('echo -n "'+input_stdin.hex()+'"|xxd -r -p|'+' '.join([self.targetbin] + input_args)))
         try:
             if self.tolerate_error:
                 proc = subprocess.Popen(' '.join([self.targetbin] + input_args) + '; exit 0', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
@@ -265,15 +265,15 @@ class Acquisition:
         return (oblock, status, index)
 
     def splitrange(self, r, mincut=1):
-        x,y=r
+        x, y=r
         if y-x <= self.maxleaf and mincut == 0:
             return deque([r])
         # Let's split range into power of two and remaining
         left=1<<(((y-x-1)//2)).bit_length()
         if mincut>0:
             mincut=mincut-1
-        dq=self.splitrange((x,x+left), mincut)
-        dq.extend(self.splitrange((x+left,y), mincut))
+        dq=self.splitrange((x, x+left), mincut)
+        dq.extend(self.splitrange((x+left, y), mincut))
         return dq
 
     def inject(self, r, faultfct):
@@ -287,7 +287,7 @@ class Acquisition:
         if not self.depth_first_traversal:
             breadth_first_level_address=None
         while len(tree)>0:
-            if type(faults) is list:
+            if isinstance(faults, list):
                 fault=faults[0]
             else:
                 faultval = random.randint(1,255)
@@ -305,7 +305,7 @@ class Acquisition:
                         level+=1
                     breadth_first_level_address = r[1]
             table=self.inject(r, fault[1])
-            oblock,status,index=self.doit(table, self.processed_input)
+            oblock, status, index=self.doit(table, self.processed_input)
             log='Lvl %03i [0x%08X-0x%08X[ %s 0x%02X %0*X ->' % (level, r[0], r[1], fault[0], fault[1](0), 2*self.blocksize, self.iblock)
             if oblock is not None:
                 log+=' %0*X' % (2*self.blocksize, oblock)
@@ -324,28 +324,28 @@ class Acquisition:
                 if r[1]>r[0]+self.minleafnail:
                     # Nailing phase: always depth-first is ok
                     if self.verbose>2:
-                        print('Nailing [0x%08X-0x%08X[' % (r[0], r[1]))
+                        print(('Nailing [0x%08X-0x%08X[' % (r[0], r[1])))
                     del(table)
                     if self.dig(self.splitrange(r), faults, level+1):
                         return True
                     continue
                 else:
                     mycandidates=candidates+[(log, (self.iblock, oblock))]
-                    if type(faults) is list and len(faults)>1:
+                    if isinstance(faults, list) and len(faults)>1:
                         del(table)
                         if self.dig(deque([r]), faults[1:], level, mycandidates):
                             return True
                         continue
-                    elif type(faults) is int and faults>1:
+                    elif isinstance(faults, int) and faults>1:
                         del(table)
                         if self.dig(deque([r]), faults-1, level, mycandidates):
                             return True
                         continue
                     else:
                         while len(mycandidates)>0:
-                            txt,pair = mycandidates.pop(0)
+                            txt, pair = mycandidates.pop(0)
                             if self.verbose>0:
-                                print(txt+' Logged')
+                                print((txt+' Logged'))
                             if status is self.FaultStatus.GoodEncFault:
                                 if pair not in self.encpairs:
                                     self.encpairs.append(pair)
@@ -391,25 +391,25 @@ class Acquisition:
             self.logfile=open(self.logfilename, 'w')
         if self.addresses is None:
             self.tabletree=deque(self.splitrange((0, len(self.goldendata))))
-        elif type(self.addresses) is str:
+        elif isinstance(self.addresses, str):
             self.tabletree=deque()
             with open(self.addresses, 'r') as reflog:
                 for line in reflog:
-                    self.tabletree.extend([(int(line[9:19],16),int(line[20:30],16))])
+                    self.tabletree.extend([(int(line[9:19], 16), int(line[20:30], 16))])
         else:
             self.tabletree=deque(self.splitrange(self.addresses))
         self.processed_input=self.processinput(self.iblock, self.blocksize)
         # Prepare golden output
         starttime=time.time()
-        oblock,status,index=self.doit(self.goldendata, self.processed_input, protect=False, init=True)
+        oblock, status, index=self.doit(self.goldendata, self.processed_input, protect=False, init=True)
         # Set timeout = N times normal execution time
         self.timeout=(time.time()-starttime)*self.timeoutfactor
         if oblock is None or status is not self.FaultStatus.NoFault:
             raise AssertionError('Error, could not obtain golden output, check your setup!')
         self.encpairs=[(self.iblock, oblock)]
         self.decpairs=[(self.iblock, oblock)]
-        self.encstatus=[0,0,0,0]
-        self.decstatus=[0,0,0,0]
+        self.encstatus=[0, 0, 0, 0]
+        self.decstatus=[0, 0, 0, 0]
         self.dig()
         tracefiles=self.savetraces()
         os.remove(self.targetdata)
@@ -421,11 +421,17 @@ class Acquisition:
             tree=list(range(16))
         if faults is None:
             faults=self.faults
-        if type(faults) is list:
+        if isinstance(faults, list):
             fault=faults[0]
         else:
+<<<<<<< HEAD
             faultval = random.randint(1,255)
             fault=('xor', lambda x: x ^ faultval)
+||||||| parent of 7e6b31d (exec 2to3)
+            fault=('xor', lambda x: x ^ random.randint(1,255))
+=======
+            fault=('xor', lambda x: x ^ random.randint(1, 255))
+>>>>>>> 7e6b31d (exec 2to3)
         table=self.goldendata
 
         while len(tree)>0:
@@ -438,7 +444,7 @@ class Acquisition:
                 iblock = self.dfa.MC(iblock)
                 iblock = self.dfa.bytes2int(iblock)
             processed_input=self.processinput(iblock, self.blocksize)
-            oblock,status,index=self.doit(table, processed_input)
+            oblock, status, index=self.doit(table, processed_input)
             log='Lvl in  [%02i] %s 0x%02X %0*X ->' % (i, fault[0], fault[1](0), 2*self.blocksize, iblock)
             if oblock is not None:
                 log+=' %0*X' % (2*self.blocksize, oblock)
@@ -455,19 +461,19 @@ class Acquisition:
                 if status is self.FaultStatus.GoodDecFault and self.minfaultspercol is not None and self.decstatus[index] >= self.minfaultspercol:
                     continue
                 mycandidates=candidates+[(log, (iblock, oblock))]
-                if type(faults) is list and len(faults)>1:
+                if isinstance(faults, list) and len(faults)>1:
                     if self.digoninput([i], faults[1:], mycandidates):
                         return True
                     continue
-                elif type(faults) is int and faults>1:
+                elif isinstance(faults, int) and faults>1:
                     if self.digoninput([i], faults-1, mycandidates):
                         return True
                     continue
                 else:
                     while len(mycandidates)>0:
-                        txt,pair = mycandidates.pop(0)
+                        txt, pair = mycandidates.pop(0)
                         if self.verbose>0:
-                            print(txt+' Logged')
+                            print((txt+' Logged'))
                         if status is self.FaultStatus.GoodEncFault:
                             if pair not in self.encpairs:
                                 self.encpairs.append(pair)
@@ -505,15 +511,15 @@ class Acquisition:
             iblock = self.dfa.MC(iblock)
             iblock = self.dfa.bytes2int(iblock)
         processed_input=self.processinput(iblock, self.blocksize)
-        oblock,status,index=self.doit(self.goldendata, processed_input, protect=False, init=True)
+        oblock, status, index=self.doit(self.goldendata, processed_input, protect=False, init=True)
         self.encpairs=[(iblock, oblock)]
         self.decpairs=[(iblock, oblock)]
         # Set timeout = N times normal execution time
         self.timeout=(time.time()-starttime)*self.timeoutfactor
         if oblock is None or status is not self.FaultStatus.NoFault:
             raise AssertionError('Error, could not obtain golden output, check your setup!')
-        self.encstatus=[0,0,0,0]
-        self.decstatus=[0,0,0,0]
+        self.encstatus=[0, 0, 0, 0]
+        self.decstatus=[0, 0, 0, 0]
         self.digoninput(mimiclastround=mimiclastround)
         tracefiles=self.savetraces()
         os.remove(self.targetdata)

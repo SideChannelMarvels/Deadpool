@@ -95,7 +95,7 @@ def findbin(keyword):
     iblock_available=True
     oblock_available=True
     for filename in glob.glob('trace_%s_*.bin' % keyword):
-        i,iblock,oblock=filename[len('trace_%s_' % keyword):-len('.bin')].split('_')
+        i, iblock, oblock=filename[len('trace_%s_' % keyword):-len('.bin')].split('_')
         if iblock!='na':
             blocksize=len(iblock)/2
             assert iblock_available==True
@@ -133,7 +133,7 @@ def bin2daredevil(keyword=None, keywords=None, delete_bin=True, config=None, con
         with open('%s_%i_%i.trace' % (keyword, ntraces, nsamples), 'wb') as filetrace,\
              open('%s_%i_%i.input' % (keyword, ntraces, nsamples), 'wb') as fileinput,\
              open('%s_%i_%i.output' % (keyword, ntraces, nsamples), 'wb') as fileoutput:
-            for filename, (iblock, oblock) in traces_meta.iteritems():
+            for filename, (iblock, oblock) in traces_meta.items():
                 if iblock_available:
                     fileinput.write(iblock.decode('hex'))
                 if oblock_available:
@@ -142,7 +142,7 @@ def bin2daredevil(keyword=None, keywords=None, delete_bin=True, config=None, con
                     filetrace.write(serializechars(trace.read(min_size)))
                 if delete_bin:
                     os.remove(filename)
-        for configname, config in configs.iteritems():
+        for configname, config in configs.items():
             if 'threads' not in config:
                 config['threads']='8'
             if 'algorithm' not in config:
@@ -228,7 +228,7 @@ def bin2trs(keyword=None, keywords=None, delete_bin=True):
             trs.write('\x44\x02' + struct.pack('<H', blocksize*iblock_available+blocksize*oblock_available))
             # End of header
             trs.write('\x5F\x00')
-            for filename, (iblock, oblock) in traces_meta.iteritems():
+            for filename, (iblock, oblock) in traces_meta.items():
                 if iblock_available:
                     trs.write(iblock.decode('hex'))
                 if oblock_available:
@@ -304,7 +304,7 @@ class Tracer(object):
         if debug is None:
             debug=self.debug
         if debug:
-            print ' '.join(cmd_list)
+            print(' '.join(cmd_list))
         if self.tolerate_error:
             proc = subprocess.Popen(' '.join(cmd_list) + '; exit 0', stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, executable='/bin/bash')
         elif self.shell:
@@ -313,7 +313,7 @@ class Tracer(object):
             proc = subprocess.Popen(cmd_list, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, errs = proc.communicate(input=input_stdin)
         if debug:
-            print output
+            print(output)
         return output
 
     def _trace_init(self, n, iblock, oblock):
@@ -347,7 +347,7 @@ class Tracer(object):
         del(self._trace_data)
         del(self._trace_info)
         if self.verbose:
-            print '%05i %s -> %s' % (n, iblockstr, oblockstr)
+            print('%05i %s -> %s' % (n, iblockstr, oblockstr))
 
 class TracerPIN(Tracer):
     def __init__(self, target,
@@ -471,7 +471,7 @@ class TracerGrind(Tracer):
                 mem_mode=line[line.index('MODE')+6]
                 mem_addr=int(line[line.index('START_ADDRESS')+15:line.index('START_ADDRESS')+31], 16)
                 mem_size=int(line[line.index('LENGTH')+7:line.index('LENGTH')+10])
-                mem_data=int(line[line.index('DATA')+6:].replace(" ",""), 16)
+                mem_data=int(line[line.index('DATA')+6:].replace(" ", ""), 16)
                 for f in self.filters:
                     if mem_mode in f.modes and f.condition(self.stack_range, mem_addr, mem_size, mem_data):
                         self._trace_data[f.keyword].append(f.extract(mem_addr, mem_size, mem_data))
@@ -493,7 +493,7 @@ class TracerGrind(Tracer):
             input_args=[]
         cmd_list=[tracergrind_exec, '--trace-children=yes', '--tool=tracergrind', '--filter='+str(self.addr_range), '--vex-iropt-register-updates=allregs-at-mem-access', '--output='+tracefile+'.grind'] + self.target + input_args
         output=self._exec(cmd_list, input_stdin, debug=True)
-        output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind',tracefile), shell=True)
+        output=subprocess.check_output("texttrace %s %s" % (tracefile+'.grind', tracefile), shell=True)
         os.remove(tracefile+'.grind')
 
 def serializechars(s, _out={}):
