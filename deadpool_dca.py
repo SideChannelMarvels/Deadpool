@@ -233,9 +233,9 @@ def bin2daredevil(
         ) as fileoutput:
             for filename, (iblock, oblock) in traces_meta.items():
                 if iblock_available:
-                    fileinput.write(iblock.decode("hex"))
+                    fileinput.write(bytearray.fromhex(iblock))
                 if oblock_available:
-                    fileoutput.write(oblock.decode("hex"))
+                    fileinput.write(bytearray.fromhex(oblock))
                 with open(filename, "rb") as trace:
                     filetrace.write(serializechars(trace.read(min_size)))
                 if delete_bin:
@@ -315,7 +315,7 @@ top=%s
                 config["top"],
             )
             with open(
-                "%s_%i_%i.%sconfig" % (keyword, ntraces, nsamples, configname), "wb"
+                "%s_%i_%i.%sconfig" % (keyword, ntraces, nsamples, configname), "w"
             ) as fileconfig:
                 fileconfig.write(content)
 
@@ -355,9 +355,9 @@ def bin2trs(keyword=None, keywords=None, delete_bin=True):
             trs.write("\x5F\x00")
             for filename, (iblock, oblock) in traces_meta.items():
                 if iblock_available:
-                    trs.write(iblock.decode("hex"))
+                    trs.write(bytearray.fromhex(iblock))
                 if oblock_available:
-                    trs.write(oblock.decode("hex"))
+                    trs.write(bytearray.fromhex(oblock))
                 with open(filename, "rb") as trace:
                     trs.write(serializechars(trace.read(min_size)))
                 if delete_bin:
@@ -392,7 +392,7 @@ def sample2event(sample, filtr, target):
                     try:
                         output = subprocess.check_output(
                             ["addr2line", "-e", target, "0x%X" % ins_addr]
-                        )
+                        ).decode()
                         output = output.split("/")[-1].strip()
                     except:
                         output = ""
@@ -480,7 +480,7 @@ class Tracer(object):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-        output, errs = proc.communicate(input=input_stdin)
+        output = proc.communicate(input=input_stdin)[0].decode()
         if debug:
             print(output)
         return output
@@ -508,7 +508,7 @@ class Tracer(object):
                 "trace_%s_%04i_%s_%s.bin" % (f.keyword, n, iblockstr, oblockstr), "wb"
             ) as trace:
                 trace.write(
-                    "".join(
+                    b"".join(
                         [
                             struct.pack(f.extract_fmt, x)
                             for x in self._trace_data[f.keyword]
@@ -528,7 +528,7 @@ class Tracer(object):
                         mem_data,
                     ) in self._trace_info[f.keyword]:
                         trace.write(
-                            "[%s] %7i %16X %16X %2i %0*X\n"
+                            b"[%s] %7i %16X %16X %2i %0*X\n"
                             % (
                                 mem_mode,
                                 item,
@@ -741,7 +741,7 @@ class TracerGrind(Tracer):
         )
         output = self._exec(cmd_list, input_stdin)
         oblock = self.processoutput(output, self.blocksize)
-        output = subprocess.check_output(
+        subprocess.run(
             "texttrace %s >(grep '^.M' > %s)"
             % (self.tmptracefile + ".grind", self.tmptracefile),
             shell=True,
@@ -800,8 +800,8 @@ class TracerGrind(Tracer):
             + self.target
             + input_args
         )
-        output = self._exec(cmd_list, input_stdin, debug=True)
-        output = subprocess.check_output(
+        self._exec(cmd_list, input_stdin, debug=True)
+        subprocess.run(
             "texttrace %s %s" % (tracefile + ".grind", tracefile), shell=True
         )
         os.remove(tracefile + ".grind")
@@ -815,8 +815,8 @@ def serializechars(s, _out={}):
         for b in range(256):
             n = b
             o = ""
-            for i in range(8):
+            for _ in range(8):
                 o += chr(n & 1)
                 n = n >> 1
-            _out[chr(b)] = o
-    return "".join(_out[x] for x in s)
+            _out[b] = o.encode()
+    return b"".join(_out[x] for x in s)
