@@ -11,6 +11,7 @@ cp attack_gh19ctf.py attack_r9.py ../../deadpool_dfa.py tmp
 cp ../../../JeanGrey/phoenixAES/phoenixAES/__init__.py tmp/phoenixAES.py
 cp ../target/main tmp/main.gold
 cd tmp
+ulimit -c 0
 # Compute reference output
 ./main.gold 74657374746573747465737474657374 > r8faults
 # DFA, keep all major faults at Level 7 (maxleaf=128b => level 7=1b)

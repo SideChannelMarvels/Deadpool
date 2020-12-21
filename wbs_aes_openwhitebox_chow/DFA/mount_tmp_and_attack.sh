@@ -7,4 +7,5 @@ cp ../../../JeanGrey/phoenixAES/phoenixAES/__init__.py tmp/phoenixAES.py
 cp ../target/encryptECB tmp
 cp ../target/key.txt tmp/key.txt.gold
 cd tmp
+ulimit -c 0
 ./attack_owb_chow.py

@@ -16,4 +16,5 @@ $USE_PRECOMPILED_CHALLENGE && cp ../target/wb_challenge tmp
 cd tmp
 $USE_PRECOMPILED_CHALLENGE || make
 cp -a wb_challenge wb_challenge.gold
+ulimit -c 0
 ./attack_ches2016.py

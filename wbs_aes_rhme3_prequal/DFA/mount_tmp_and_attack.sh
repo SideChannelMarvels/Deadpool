@@ -6,4 +6,5 @@ cp attack_rhme3p1.py ../../deadpool_dfa.py tmp
 cp ../../../JeanGrey/phoenixAES/phoenixAES/__init__.py tmp/phoenixAES.py
 cp ../target/whitebox tmp/whitebox.gold
 cd tmp
+ulimit -c 0
 ./attack_rhme3p1.py

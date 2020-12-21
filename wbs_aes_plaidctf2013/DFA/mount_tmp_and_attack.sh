@@ -6,4 +6,5 @@ cp attack_plaidctf.py ../../deadpool_dfa.py tmp
 cp ../../../JeanGrey/phoenixAES/phoenixAES/__init__.py tmp/phoenixAES.py
 cp ../target/drmless tmp
 cd tmp
+ulimit -c 0
 ./attack_plaidctf.py

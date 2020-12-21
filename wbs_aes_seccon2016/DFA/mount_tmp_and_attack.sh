@@ -7,4 +7,5 @@ cp ../../../JeanGrey/phoenixAES/phoenixAES/__init__.py tmp/phoenixAES.py
 cp ../target/main64 ../target/libnative-lib.so tmp
 cp ../target/libnative-lib.so tmp/libnative-lib.so.gold
 cd tmp
+ulimit -c 0
 ./attack_seccon2016.py
