@@ -1,10 +1,10 @@
 # KryptoPlus™ White-box challenge
 
-Mehdi Sotoodeh published a challenge at http://kryptologik.com/ :
+Mehdi Sotoodeh published a challenge at http://kryptologik.com/ ([archive](https://web.archive.org/web/20200812010457/http://kryptologik.com/)):
 
 *You are invited to have a look at the code and evaluate it for yourself. Can you break it?*
 
-The challenge whitebox [DemoKey_encrypt.js](http://kryptologik.com/js/DemoKey_encrypt.js) is written in JavaScript.
+The challenge whitebox [DemoKey_encrypt.js](http://kryptologik.com/js/DemoKey_encrypt.js) ([archive](https://web.archive.org/web/20180116080801/http://kryptologik.com/js/DemoKey_encrypt.js)) is written in JavaScript.
 
 Some details are also available at https://github.com/msotoodeh/WhiteBoxCrypto.
 There, it is said that KryptoPlus tools generates code for C/C++, JavaScript, Python and C-sharp.
