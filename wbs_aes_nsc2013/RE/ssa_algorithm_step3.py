@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
 
-print """
+print("""
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -27,8 +27,7 @@ int main(int argc, char *argv[])
 {
     struct aes_wb_s aes;
     FILE* f;
-"""
-
+""")
 f = open('tables', 'r')
 for line in f.readlines():
     patternfT = 'fT\[([0-9]+)\] = (.*)'
@@ -37,19 +36,19 @@ for line in f.readlines():
 
     match = re.search(patternfT, line)
     if match:
-        print "    memcpy(aes.finalTable[%s], %s, sizeof(%s));" % (match.group(1), match.group(2), match.group(2))
+        print("    memcpy(aes.finalTable[%s], %s, sizeof(%s));" % (match.group(1), match.group(2), match.group(2)))
 
     match = re.search(patternrT, line)
     if match:
-        print "    memcpy(aes.roundTables[%s][%s][%s], %s, sizeof(%s));" % (match.group(1), match.group(2), match.group(3), match.group(4), match.group(4))
+        print("    memcpy(aes.roundTables[%s][%s][%s], %s, sizeof(%s));" % (match.group(1), match.group(2), match.group(3), match.group(4), match.group(4)))
 
     match = re.search(patternxT, line)
     if match:
-        print "    memcpy(aes.xorTables[%s], %s, sizeof(%s));" % (match.group(1), match.group(2), match.group(2))
+        print("    memcpy(aes.xorTables[%s], %s, sizeof(%s));" % (match.group(1), match.group(2), match.group(2)))
 
-print """
+print("""
     f = fopen("result/wbt_nsc", "wb");
     fwrite(&aes, 1, sizeof(aes), f);
     fclose(f);
 }
-"""
+""")

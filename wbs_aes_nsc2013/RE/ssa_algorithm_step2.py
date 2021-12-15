@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
@@ -32,7 +32,7 @@ for line in reversed(f.readlines()):
         dst = match.group(1)
         table = match.group(2)
         fetched = match.group(3)
-#        print dst, table, fetched
+#        print(dst, table, fetched)
         t[dst]=(table, fetched)
 
     match = re.search(patternf, line)
@@ -40,7 +40,7 @@ for line in reversed(f.readlines()):
         dst = match.group(1)
         table = match.group(2)
         fetched = match.group(3)
-#        print dst, table, fetched
+#        print(dst, table, fetched)
         t[dst]=(table, fetched)
 
     match = re.search(pattern_16, line)
@@ -49,7 +49,7 @@ for line in reversed(f.readlines()):
         table = match.group(2)
         fetched1 = match.group(3)
         fetched2 = match.group(4)
-#        print dst, table, fetched1, fetched2
+#        print(dst, table, fetched1, fetched2)
         t[dst]=(table, fetched1, fetched2)
 
 f = open('ssa_algorithm_clean', 'r')
@@ -62,12 +62,12 @@ for line in reversed(f.readlines()):
         dst = match.group(1)
         table = match.group(2)
         fetched = match.group(3)
-#        print dst, table, fetched
+#        print(dst, table, fetched)
         assert dst in d
-#        print dst, "->", d[dst], "->", t[d[dst]]
+#        print(dst, "->", d[dst], "->", t[d[dst]])
         (d[table], d[fetched])=t[d[dst]]
-        print d[table], "=", table
-#        print "d", fetched, "=", d[fetched]
+        print(d[table], "=", table)
+#        print("d", fetched, "=", d[fetched])
 
     match = re.search(pattern_16, line)
     if match:
@@ -75,9 +75,9 @@ for line in reversed(f.readlines()):
         table = match.group(2)
         fetched1 = match.group(3)
         fetched2 = match.group(4)
-#        print dst, table, fetched1, fetched2
+#        print(dst, table, fetched1, fetched2)
         assert dst in d
         (d[table], d[fetched1], d[fetched2])=t[d[dst]]
-        print d[table], "=", table
-#        print "d", fetched1, "=", d[fetched1]
-#        print "d", fetched2, "=", d[fetched2]
+        print(d[table], "=", table)
+#        print("d", fetched1, "=", d[fetched1])
+#        print("d", fetched2, "=", d[fetched2])

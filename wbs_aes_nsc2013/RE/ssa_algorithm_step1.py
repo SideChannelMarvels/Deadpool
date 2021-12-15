@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
@@ -30,7 +30,7 @@ rounds.append(block)
 
 r=1
 for block in reversed(rounds):
-    print '//ROUND%i' % r
+    print('//ROUND%i' % r)
     r+=1
     for line in block:
-        print line
+        print(line)
