@@ -4,7 +4,7 @@
 
 
 ```bash
-echo -n 00000000000000000000000000000000|Tracer -t sqlite -o rhme3.trace -- ../target/whitebox --stdin
+echo -n 00000000000000000000000000000000|Tracer -t sqlite -o rhme3.sqlite -- ../target/whitebox --stdin
 ```
 
 ## Acquiring one trace with TracerGrind
