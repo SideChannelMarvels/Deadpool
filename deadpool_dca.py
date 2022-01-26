@@ -235,7 +235,7 @@ def bin2daredevil(
                 if iblock_available:
                     fileinput.write(bytearray.fromhex(iblock))
                 if oblock_available:
-                    fileinput.write(bytearray.fromhex(oblock))
+                    fileoutput.write(bytearray.fromhex(oblock))
                 with open(filename, "rb") as trace:
                     filetrace.write(serializechars(trace.read(min_size)))
                 if delete_bin:
@@ -530,7 +530,7 @@ class Tracer(object):
                         trace.write(
                             b"[%s] %7i %16X %16X %2i %0*X\n"
                             % (
-                                mem_mode,
+                                mem_mode.encode('utf8'),
                                 item,
                                 ins_addr,
                                 mem_addr,
