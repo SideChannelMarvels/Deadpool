@@ -13,7 +13,7 @@ cd Whitebox-crypto-AES
 
 You'll find here the result of the ```Release``` compilation.
 
-You can find also versions compiled with Boost 1.55 and 1.58.
+You can find also versions compiled with Boost 1.62 and 1.74.
 
 Usage
 -----

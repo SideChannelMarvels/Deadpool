@@ -1,0 +1,4 @@
+target/enc*
+target/instr*
+target/main*
+target/tables.h
