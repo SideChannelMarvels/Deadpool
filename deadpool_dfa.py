@@ -290,7 +290,8 @@ class Acquisition:
             if type(faults) is list:
                 fault=faults[0]
             else:
-                fault=('xor', lambda x: x ^ random.randint(1,255))
+                faultval = random.randint(1,255)
+                fault=('xor', lambda x: x ^ faultval)
             if self.start_from_left:
                 r=tree.popleft()
                 if not self.depth_first_traversal:
@@ -423,7 +424,8 @@ class Acquisition:
         if type(faults) is list:
             fault=faults[0]
         else:
-            fault=('xor', lambda x: x ^ random.randint(1,255))
+            faultval = random.randint(1,255)
+            fault=('xor', lambda x: x ^ faultval)
         table=self.goldendata
 
         while len(tree)>0:
