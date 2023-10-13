@@ -1,0 +1,79 @@
+set pagination off
+set $base=0x0000555555400000
+##########################
+#Remove masking
+##########################
+b *($base+0xe0d)
+commands
+    set $eax=0
+    c
+end
+
+b *($base+0x1810)
+commands
+    set $eax = 0
+    c
+end
+
+b *($base+0x183C)
+commands
+    set $eax = 0
+    c
+end
+
+
+#b *($base+0x1151)
+
+##########################
+# after the xors
+##########################
+b *($base+0x11C9)
+commands
+    x/4x 0x5555562576d0
+    p/x $xmm0
+    c
+end
+
+##########################
+# Print End
+##########################
+b *($base+0x1303)
+commands
+    p/x $rax
+    p/x $rdx
+    c
+end
+
+#################################
+# force step 7 scheduling first
+#################################
+b *($base+0x16DE)
+commands
+    set $rbx=7
+    c
+end
+
+
+#b *($base+0x1728) if $eax == 1
+
+#################################
+# force step 7 scheduling first
+#################################
+b *($base+0x1d04)
+commands
+    x/bx $r10
+    c
+end
+
+##################################
+# after sbox
+##################################
+b *($base+0x206f)
+commands
+    print("after sbox")
+    x/16bx $base+0xd036d0
+    p/x $xmm0
+    quit
+end
+
+run

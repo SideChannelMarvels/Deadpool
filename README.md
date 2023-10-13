@@ -61,6 +61,10 @@ An implementation of OpenWhiteBox paper written in Go, implementing an AES 128.
 
 A Linux binary (and source) implementing an AES 128.
 
+### [SECCON 2016 challenge](wbs_aes_seccon2016)
+
+An ARM, ARM64, x86 and x86-64 native library implementing an AES 128, bundled in an Android application.
+
 ### [Kryptologik challenge](wbs_aes_kryptologik)
 
 A JavaScript implementing an AES 256 with diversified round keys.
@@ -73,6 +77,17 @@ A Linux binary implementing an AES 128.
 
 A Linux binary implementing an AES 128.
 
+### [WhibOx Contest Edition 2 Challenge 82](wbs_aes_whibox2_82)
+
+An AES128 implementation written in C.
+
+### [Ledger CTF 2018](wbs_aes_ledger2018)
+
+A Linux binary implementing an AES 128. Sources available.
+
+### [GreHack 2019 CTF challenge](wbs_aes_grehack2019)
+
+An AES128 implementation written in C.
 ### [White Magic challenge](wbs_xxx_whitemagic)
 
 A linux binary implementing ... (CTF still open)

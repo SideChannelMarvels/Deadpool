@@ -153,3 +153,18 @@ for tracefile in tracefiles:
     if phoenixAES.crack(tracefile):
         break
 ```
+
+### DFA Usage Examples
+
+* [DFA on Karroumi 2010](wbs_aes_karroumi2010/DFA)
+* [DFA on NoSuchCon 2013](wbs_aes_nsc2013/DFA) with darkphoenixAES
+* [DFA on NoSuchCon 2013 variant](wbs_aes_nsc2013_variants/DFA) and [on its sources](wbs_aes_nsc2013_variants/DFA_src)
+* [DFA on PlaidCTF 2013](wbs_aes_plaidctf2013/DFA), variant [using Frida](wbs_aes_plaidctf2013/DFA2) and [PoC on round 8](wbs_aes_plaidctf2013/DFAr8)
+* [DFA on CHES 2016](wbs_aes_ches2016/DFA)
+* [DFA on SECCON 2016](wbs_aes_seccon2016/DFA)
+* [DFA on Kryptologik](wbs_aes_kryptologik/DFA) recursing on all rounds
+* [DFA on OpenWhiteBox AES Chow](wbs_aes_openwhitebox_chow/DFA)
+* [DFA on OpenWhiteBox AES Xiao-Lai](wbs_aes_openwhitebox_xiaolai/DFA) with darkphoenixAES
+* [DFA on Lee CASE1](wbs_aes_lee_case1/DFA)
+* [DFA on RHME3 prequal](wbs_aes_rhme3_prequal/DFA)
+* [DFA on GreHack 2019](wbs_aes_grehack2019/DFAr8) on round 8
