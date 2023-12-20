@@ -3,7 +3,7 @@ Second algebraic attack
 
 Compared to the original NoSuchCon 2013 challenge, here we have the external encodings tables therefore there is another attack possible on the finalTable with the knowledge of the output external encoding table.
 
-A description of the attack is available at http://wiki.yobi.be/wiki/CHES2015_Writeup#Second_step_revisited.2C_the_sequel
+A description of the attack is available at https://wiki.yobi.be/index.php/CHES2015_Writeup#Second_step_revisited.2C_the_sequel
 
 First we generate a white-box:
 

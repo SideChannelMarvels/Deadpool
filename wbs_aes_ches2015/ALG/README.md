@@ -4,7 +4,7 @@ Algebraic attack
 This is exactly the same attack as for the [original wbs_aes_nsc2013](../../wbs_aes_nsc2013/ALG/README.md).
 
 We'll perform an algebraic attack on one round (any between the 2nd and the 9th).
-A description of the attack is available at http://wiki.yobi.be/wiki/NSC_Writeups#Oppida.2FNoSuchCon_challenge
+A description of the attack is available at https://wiki.yobi.be/index.php/NSC_Writeups#Oppida.2FNoSuchCon_challenge
 
 Once the tables are extracted from ```rom.bin``` (cf [../LIFT](../LIFT/README.md)),
 we attack it, with an "empty" white-box as reference:

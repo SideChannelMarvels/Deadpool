@@ -13,4 +13,4 @@ Components
 
 Other write-ups
 ---------------
-* http://wiki.yobi.be/wiki/CHES2015_Writeup#Challenge_4
+* https://wiki.yobi.be/index.php/CHES2015_Writeup#Challenge_4

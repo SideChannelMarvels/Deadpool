@@ -27,7 +27,7 @@ You may follow his write-up till you obtain [wbaes128_solve.cpp](https://github.
 and [wbaes128.h](https://github.com/0vercl0k/stuffz/blob/master/NoSuchCon2013/wbaes128/wbaes128.h) which are reproduced in this repository for simplicity.
 
 We perform some operations on those files to get tables suitable for [Eloi's generator](http://pastebin.com/MvXpGZts).  
-Those steps are detailed in http://wiki.yobi.be/wiki/NSC_Writeups#Epilogue  
+Those steps are detailed in https://wiki.yobi.be/index.php/NSC_Writeups#Epilogue  
 ```nosuchcon_2013_whitebox_debug.c``` and ```result/nosuchcon_2013_whitebox.c``` are derived from that generator.
 At this point we'll get a clean version of the white-box, as if it was produced by Eloi's generator.
 A script is automating the required steps:

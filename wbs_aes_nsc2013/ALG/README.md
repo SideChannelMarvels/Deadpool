@@ -2,7 +2,7 @@ Algebraic attack
 ----------------
 
 We'll perform an algebraic attack on one round (any between the 2nd and the 9th).
-A description of the attack is available at http://wiki.yobi.be/wiki/NSC_Writeups#Oppida.2FNoSuchCon_challenge
+A description of the attack is available at https://wiki.yobi.be/index.php/NSC_Writeups#Oppida.2FNoSuchCon_challenge
 
 This attack requires the tables extracted from the reverse-engineering step, so if you didn't do it yet:
 
