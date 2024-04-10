@@ -2,7 +2,7 @@
 
 This challenge was made by Nahim (naam) El Atmani in 2016 in the context of the LSE CTF
 
-Ref: https://ctf.lse.epita.fr/ex/79/
+Ref: https://ctf.lse.re/challenges#White%20Magic-13
 
 Components
 ----------
